@@ -25,6 +25,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--cur);outline-offset:2px}
 .app{box-sizing:border-box;max-width:560px;margin:0 auto;height:calc(100vh - 32px);height:calc(100dvh - 32px);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.shell{display:flex;justify-content:center;align-items:flex-start;gap:16px}
+.col{flex:1 1 560px;max-width:560px;min-width:0}
+.help{flex:0 0 270px;position:sticky;top:16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:13px;color:var(--text)}
+.help h2{margin:0 0 8px;font-size:15px;font-weight:600}
+.help ol{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;color:var(--mute)}
+.help li b{color:var(--text);font-weight:600}
+@media (max-width:900px){.shell{display:block}.help{display:none}}
 .top{display:flex;align-items:center;gap:6px}
 .top h1{font-size:15px;font-weight:600;margin:0;flex:1;letter-spacing:.2px}
 .chip{background:var(--btn);border:0;border-radius:4px;padding:5px 9px;font-size:12px;font-weight:500;color:var(--text)}
@@ -189,6 +196,7 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
 </style>
 </head>
 <body>
+<div class="shell"><div class="col" id="col">
 <main class="app" id="app">
   <div class="top">
     <h1>Search Pattern</h1>
@@ -232,6 +240,19 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
   <h1>Search Pattern</h1>
   <p class="sub">Popped out into its own window.</p>
   <div class="row"><button class="chip" id="stubset">Settings</button><button class="chip" id="stubdock">Dock</button></div>
+</div>
+</div>
+<aside class="help" id="help" aria-label="Instructions">
+  <h2>How to use</h2>
+  <ol>
+    <li><b>Find a study.</b> Type a study name and press Search, or pick a modality, anatomy and study.</li>
+    <li><b>Step through it.</b> <kbd>Space</kbd> or <kbd>&darr;</kbd> next item, <kbd>&uarr;</kbd> back. <kbd>&rarr;</kbd> and <kbd>&larr;</kbd> switch views.</li>
+    <li><b>Use the mouse.</b> Scroll over the checklist to move items. Hold <kbd>Shift</kbd> and scroll to switch views.</li>
+    <li><b>Voice.</b> Each item is read aloud. Change the voice and speed in Settings.</li>
+    <li><b>Pop out.</b> Opens a small always-on-top window (Chrome or Edge). Minimal shows only the current item. Close the window to dock it back.</li>
+    <li><b>Templates.</b> Edit, download or upload your own in Settings.</li>
+  </ol>
+</aside>
 </div>
 
 <div class="ovl" id="ovl" role="dialog" aria-modal="true" aria-label="Settings">
@@ -799,7 +820,7 @@ function popToggle(){
     d.addEventListener("keydown",onKey);
     w.addEventListener("pagehide",function(){
       pipWin=null;app.classList.remove("pip");
-      document.body.insertBefore(app,document.getElementById("ovl"));
+      document.getElementById("col").insertBefore(app,document.getElementById("stub"));
       renderAll();
     });
     renderAll();
