@@ -56,9 +56,9 @@ button{cursor:pointer}
 .studies .btn{font-size:12.5px}
 .seqs{display:grid;gap:4px}
 .wrap{display:contents}
-.vs{font-size:13px}
-.vs summary{cursor:pointer;color:var(--mute);width:max-content}
-.vsb{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;margin-top:8px}
+[hidden]{display:none!important}
+.vs{font-size:13px;max-width:460px}
+.vsb{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center}
 .vsb label{color:var(--mute);font-size:12px}
 .vsb select{min-width:0;width:100%}
 .vsb button{grid-column:2;justify-self:start}
@@ -153,7 +153,7 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
     <button class="chip" id="voice" aria-pressed="true" title="Read each item aloud">Voice</button>
     <button class="chip" id="pop" title="Pop out into a small always-on-top window">Pop out</button>
     <button class="chip" id="minbtn" title="Show only the current item">Minimal</button>
-    <button class="chip editbtn" id="edit" title="Edit templates">Edit</button>
+    <button class="chip editbtn" id="edit" title="Voice and templates">Settings</button>
   </div>
   <div class="chrome wrap">
     <form class="match" id="matchform">
@@ -161,16 +161,6 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
       <button type="submit">Match</button>
     </form>
     <p class="sub" id="matchmsg">Or pick a modality and study below.</p>
-    <details class="vs" id="vs">
-      <summary>Voice settings</summary>
-      <div class="vsb">
-        <label for="vsel">Voice</label>
-        <select id="vsel"></select>
-        <label for="vrate">Speed <span id="vrv"></span></label>
-        <input type="range" id="vrate" min="0.6" max="2" step="0.1">
-        <button class="sm" id="vtest" type="button">Test voice</button>
-      </div>
-    </details>
     <div class="row mods" id="mods"></div>
     <div class="row cats" id="cats"></div>
     <div class="row studies" id="studies"></div>
@@ -192,23 +182,39 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
   <p class="foot"><kbd>Space</kbd> or <kbd>→</kbd> next &nbsp; <kbd>←</kbd> back &nbsp; <kbd>↓</kbd> next view &nbsp; <kbd>↑</kbd> previous view</p>
 </main>
 
-<div class="ovl" id="ovl" role="dialog" aria-modal="true" aria-label="Edit templates">
+<div class="ovl" id="ovl" role="dialog" aria-modal="true" aria-label="Settings">
   <div class="ed">
     <header>
-      <h2>Edit templates</h2>
+      <h2>Settings</h2>
+      <div class="tabs" id="stabs" role="tablist"><button role="tab" data-v="voice">Voice</button><button role="tab" data-v="templates">Templates</button></div>
       <div class="tabs" id="etabs" role="tablist"></div>
     </header>
-    <div class="edbody">
+    <div class="pane" id="evoice" hidden>
+      <div class="vs" id="vs">
+        <h3 style="margin:0 0 4px;font-size:15px">Voice</h3>
+        <p class="sub" style="margin:0 0 12px">Changes apply right away and are saved in this browser.</p>
+        <div class="vsb">
+          <label for="vsel">Voice</label>
+          <select id="vsel"></select>
+          <label for="vrate">Speed <span id="vrv"></span></label>
+          <input type="range" id="vrate" min="0.6" max="2" step="0.1">
+          <button class="sm" id="vtest" type="button">Test voice</button>
+        </div>
+      </div>
+    </div>
+    <div class="edbody" id="tplbody">
       <div class="pane left" id="eleft"></div>
       <div class="pane" id="eright"></div>
     </div>
     <footer>
+      <span id="tplonly" style="display:contents">
       <button class="sm" id="dl" title="Save your templates as a file">Download</button>
       <button class="sm" id="up" title="Load templates from a file">Upload</button>
       <input type="file" id="upfile" accept=".json,application/json" hidden>
       <button class="sm" id="exp" title="Show the JSON to copy">Copy JSON</button>
       <button class="sm" id="imp" title="Paste JSON">Paste JSON</button>
       <button class="sm danger" id="reset">Reset to defaults</button>
+      </span>
       <span class="sp"></span>
       <span class="msg" id="emsg"></span>
       <button class="sm" id="ecancel">Cancel</button>
@@ -504,7 +510,7 @@ function fillVoices(){
   if(sel.value!==ui.voiceURI)sel.value="";
 }
 (function(){
-  if(!("speechSynthesis" in window)){var el=document.getElementById("vs");if(el)el.style.display="none";return}
+  if(!("speechSynthesis" in window)){var el=document.getElementById("vs");if(el)el.innerHTML='<h3 style="margin:0 0 4px;font-size:15px">Voice</h3><p class="sub">This browser cannot read aloud. Try Chrome or Edge.</p>';return}
   fillVoices();
   try{speechSynthesis.addEventListener("voiceschanged",fillVoices)}catch(e){speechSynthesis.onvoiceschanged=fillVoices}
   var r=document.getElementById("vrate");r.value=ui.rate;document.getElementById("vrv").textContent=Number(ui.rate).toFixed(1)+"x";
@@ -716,9 +722,15 @@ function edOpen(){
   ED={draft:clone(T),mod:S.mod,name:S.study&&hasStudy(T,S.mod,S.study)?S.study:null,focus:-1,dirty:false};
   if(!ED.name){var f=firstStudy(ED.draft,ED.mod);ED.name=f}
   $("emsg").textContent="";
-  $("ovl").classList.add("open");edRender();
+  $("ovl").classList.add("open");setView("voice");edRender();
 }
 function firstStudy(t,m){for(var i=0;i<CATS.length;i++){var s=studies(t,m,CATS[i]);if(s.length)return s[0]}return null}
+function setView(v){
+  var vo=v==="voice";
+  $("evoice").hidden=!vo;$("tplbody").hidden=vo;$("etabs").hidden=vo;$("tplonly").hidden=vo;
+  [].forEach.call($("stabs").querySelectorAll("button"),function(b){b.setAttribute("aria-selected",String(b.dataset.v===v))});
+}
+$("stabs").onclick=function(e){var b=e.target.closest("[data-v]");if(b)setView(b.dataset.v)};
 function edClose(){$("ovl").classList.remove("open");ED=null}
 function edRender(){
   $("etabs").innerHTML=MODS.map(function(m){return '<button role="tab" data-m="'+m+'" aria-selected="'+(m===ED.mod)+'">'+m+'</button>'}).join("");
