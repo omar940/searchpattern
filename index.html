@@ -12,8 +12,9 @@
 :root{
   --bg:#1e1e1e; --panel:#252526; --line:#3c3c3c; --text:#d4d4d4; --mute:#858585;
   --btn:#333337; --btn-off:#2b2b2d; --btn-off-text:#5f5f5f;
-  --accent:#007acc; --accent-text:#fff; --ok:#388a34; --ok-soft:#2d4a2b; --cur:#569cd6; --done:#6e6e6e;
+  --accent:#007acc; --accent-text:#fff; --ok:#388a34; --ok-soft:#2d4a2b; --cur:#dcdcaa; --done:#6e6e6e;
   --danger:#f48771;
+  --c-mod:#4fa8e8; --c-cat:#569cd6; --c-study:#ce9178; --c-view:#4ec9b0; --c-item:#dcdcaa; --c-ok:#b5cea8;
   --font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
   color-scheme:dark;
 }
@@ -70,7 +71,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .list li.done{color:var(--done)}
 .list li.cur{color:var(--cur);font-weight:600}
 .list li.cur .mk{color:var(--cur)}
-.list li.finish{color:var(--ok);font-weight:600;cursor:default}
+.list li.finish{color:var(--c-ok);font-weight:600;cursor:default}
 .list .empty{color:var(--mute);padding:10px 8px;cursor:default}
 .nav{display:grid;grid-template-columns:1fr 2fr;gap:6px}
 .nav2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -79,7 +80,9 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .nav2 .btn{font-size:12px;color:var(--mute)}
 .mini{display:none;flex-direction:column;gap:2px;padding:4px 2px}
 .mini .ms{color:var(--mute);font-size:12px}
-.mini .mv{color:var(--ok);font-size:17px;font-weight:600}
+.mini .ms .m{color:var(--c-mod);font-weight:600}
+.mini .ms .s{color:var(--c-study)}
+.mini .mv{color:var(--c-view);font-size:17px;font-weight:600}
 .mini .mi{color:var(--cur);font-size:24px;font-weight:600;line-height:1.25}
 .app.min .chrome{display:none}
 .app.min #matchmsg.dflt{display:none}
@@ -412,7 +415,7 @@ function renderList(){
 }
 function renderMini(){
   if(!S.items.length){$("ms").textContent="";$("mv").textContent="";$("mi").textContent="Select a study";return}
-  $("ms").textContent=S.mod+" • "+S.study;
+  $("ms").innerHTML='<span class="m">'+esc(S.mod)+'</span> \u2022 <span class="s">'+esc(S.study)+'</span>';
   var h=curHdr();$("mv").textContent=h===null?"":S.items[h].slice(2);
   $("mi").textContent=S.finished?"Checklist complete":(S.idx>=0&&S.idx<S.items.length?spoken(S.items[S.idx]):"Press Next to start");
 }
