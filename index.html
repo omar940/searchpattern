@@ -262,8 +262,6 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
       <button class="sm" id="dl" title="Save your templates as a file">Download</button>
       <button class="sm" id="up" title="Load templates from a file">Upload</button>
       <input type="file" id="upfile" accept=".json,application/json" hidden>
-      <button class="sm" id="exp" title="Show the JSON to copy">Copy JSON</button>
-      <button class="sm" id="imp" title="Paste JSON">Paste JSON</button>
       <button class="sm danger" id="reset">Reset to defaults</button>
       </span>
       <span class="sp"></span>
@@ -625,7 +623,7 @@ $("esave").onclick=function(){
   if(S.study&&hasStudy(T,S.mod,S.study)){S.items=items(T,S.mod,S.study);S.idx=Math.min(S.idx,S.items.length-1);S.cat=categoryOf(T,S.mod,S.study)||S.cat}
   else if(S.study){S.study=null;S.items=[];S.idx=-1}
   edClose();renderAll();
-  setMsg(ok?"Templates saved in this browser.":"Saved for this session only. Use Export to keep a copy.");
+  setMsg(ok?"Templates saved in this browser.":"Saved for this session only. Use Download to keep a copy.");
 };
 $("etabs").onclick=function(e){var b=e.target.closest("[data-m]");if(!b)return;ED.mod=b.dataset.m;ED.name=firstStudy(ED.draft,ED.mod);ED.focus=-1;edRender()};
 $("eleft").onclick=async function(e){
@@ -712,7 +710,6 @@ $("eright").addEventListener("drop",function(e){
 });
 $("eright").addEventListener("dragend",function(){dragI=null;[].forEach.call(document.querySelectorAll(".er.drop"),function(x){x.classList.remove("drop")})});
 
-$("exp").onclick=function(){showText("Export templates","Copy this JSON to keep a backup, or to share your templates with someone else.",JSON.stringify(ED.draft,null,1),false)};
 function applyImport(txt){
   try{
     var d=JSON.parse(txt);
@@ -720,19 +717,14 @@ function applyImport(txt){
     ED.draft=ensure(d);ED.mod=MODS[0];ED.name=firstStudy(ED.draft,ED.mod);ED.focus=-1;edRender();edMsg("Imported. Press Save to keep it.");
   }catch(x){edMsg("Import failed: "+x.message)}
 }
-$("imp").onclick=async function(){
-  var txt=await showText("Paste templates","Paste a templates.json. This replaces the templates in the editor; nothing is kept until you press Save.","",true);
-  if(txt===null||!String(txt).trim())return;
-  applyImport(txt);
-};
 $("dl").onclick=function(){
   try{
     var a=document.createElement("a");
     a.href=URL.createObjectURL(new Blob([JSON.stringify(ED.draft,null,1)],{type:"application/json"}));
     a.download="searchpattern-templates.json";
     document.body.appendChild(a);a.click();a.remove();
-    edMsg("Download started. If no file appeared, use Copy JSON instead.");
-  }catch(x){edMsg("Download is blocked here. Use Copy JSON instead.")}
+    edMsg("Download started.");
+  }catch(x){edMsg("Download is blocked in this browser.")}
 };
 $("up").onclick=function(){$("upfile").value="";$("upfile").click()};
 $("upfile").onchange=function(){
