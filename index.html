@@ -71,7 +71,8 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .match input{flex:1;min-width:0;background:var(--btn-off);border:1px solid var(--line);border-radius:4px;padding:7px 9px;font-size:13px}
 .match button{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:7px 12px;font-size:13px;font-weight:500}
 .list{list-style:none;margin:0;padding:0;flex:1 1 auto;min-height:140px;overflow-y:auto;position:relative}
-.list li{padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--text);display:flex;gap:8px}
+.list li{padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--text);display:flex;align-items:flex-start;gap:8px}
+.list li>span:not(.mk){flex:1;min-width:0;overflow-wrap:anywhere;white-space:normal}
 .list li:hover{background:var(--btn-off)}
 .list li .mk{width:1.1em;flex:none;color:var(--mute);font-family:var(--mono);font-size:13px}
 .list li.done{color:var(--done)}
