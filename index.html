@@ -182,7 +182,7 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
 .stub .row{display:flex;gap:6px}
 .app.pip .top{flex-wrap:nowrap;row-gap:0}
 .app.pip .top h1{flex:1 1 auto;white-space:nowrap}
-.app.pip #pop{display:inline-block}
+.app.pip #pop{display:none}
 .app.pip.min #pick{display:none}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
@@ -229,8 +229,8 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
 </main>
 <div class="stub" id="stub" hidden>
   <h1>Search Pattern</h1>
-  <p class="sub">Popped out into its own window.</p>
-  <div class="row"><button class="chip" id="stubset">Settings</button><button class="chip" id="stubdock">Dock</button></div>
+  <p class="sub">Popped out into its own window. Close that window to bring it back here.</p>
+  <div class="row"><button class="chip" id="stubset">Settings</button></div>
 </div>
 
 <div class="ovl" id="ovl" role="dialog" aria-modal="true" aria-label="Settings">
@@ -615,7 +615,6 @@ function curRows(){return ED.draft.checklists[ED.mod][ED.name]}
 function edMsg(t){$("emsg").textContent=t}
 $("edit").onclick=edOpen;
 document.getElementById("stubset").onclick=edOpen;
-document.getElementById("stubdock").onclick=function(){if(pipWin)pipWin.close()};
 $("ecancel").onclick=function(){edClose()};
 $("esave").onclick=function(){
   T=ensure(ED.draft);
