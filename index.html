@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--text);font:15px/1.4 var(--font);padding:16
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--cur);outline-offset:2px}
-.app{box-sizing:border-box;max-width:560px;margin:0 auto;min-height:calc(100vh - 32px);min-height:calc(100dvh - 32px);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.app{box-sizing:border-box;max-width:560px;margin:0 auto;height:calc(100vh - 32px);height:calc(100dvh - 32px);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .top{display:flex;align-items:center;gap:6px}
 .top h1{font-size:15px;font-weight:600;margin:0;flex:1;letter-spacing:.2px}
 .chip{background:var(--btn);border:0;border-radius:4px;padding:5px 9px;font-size:12px;font-weight:500;color:var(--text)}
@@ -59,13 +59,13 @@ button{cursor:pointer}
 .vsb label{color:var(--mute);font-size:12px}
 .vsb select{min-width:0;width:100%}
 .vsb button{grid-column:2;justify-self:start}
-.app.pip{max-width:none;border:0;border-radius:0;min-height:0}
+.app.pip{max-width:none;border:0;border-radius:0;height:100vh}
 hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .match{display:flex;gap:6px}
 .match input{flex:1;min-width:0;background:var(--btn-off);border:1px solid var(--line);border-radius:4px;padding:7px 9px;font-size:13px}
 .match button{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:7px 12px;font-size:13px;font-weight:500}
-.list{list-style:none;margin:0;padding:0;flex:1 1 auto;min-height:140px;overflow:visible;position:relative}
-.list li{scroll-margin-bottom:140px;padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--text);display:flex;align-items:flex-start;gap:8px}
+.list{list-style:none;margin:0;padding:0;flex:1 1 0;min-height:120px;overflow-y:auto;position:relative}
+.list li{padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--text);display:flex;align-items:flex-start;gap:8px}
 .list li>span:not(.mk){flex:0 1 auto;min-width:0;overflow-wrap:anywhere;white-space:normal}
 .list li:hover{background:var(--btn-off)}
 .list li .mk{width:1.1em;flex:none;color:var(--mute);font-family:var(--mono);font-size:13px}
@@ -89,7 +89,8 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .app.min .chrome{display:none}
 .app.min #matchmsg.dflt{display:none}
 .app.min .mini{display:flex;flex:1;justify-content:center}
-.app.pip.min{min-height:0;padding:8px;gap:6px}
+.app.pip.min{padding:8px;gap:6px}
+.app.min .mini{overflow-y:auto;min-height:0}
 .app.min .foot,.app.min .dock{display:none}
 .app.min .top h1{font-size:13px}
 .app.min .chip{padding:3px 7px;font-size:11px}
@@ -157,7 +158,7 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
 .dlg .acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 @media (max-width:700px){
   body{padding:0}
-  .app:not(.pip){max-width:none;min-height:100vh;min-height:100dvh;border:0;border-radius:0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));gap:8px}
+  .app:not(.pip){max-width:none;height:100vh;height:100dvh;border:0;border-radius:0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));gap:8px}
   .list{flex:1 1 auto;max-height:none;min-height:120px}
   .app.min .mini{flex:1;justify-content:center}
   .studies{grid-template-columns:repeat(3,1fr)}
@@ -282,7 +283,7 @@ window.DEFAULT_TEMPLATES = {"checklists": {"CT": {"CTA PE": ["Scout", "Support d
 "use strict";
 var MODS=["XR","US","FL","CT","MR"], CATS=["Neuro","Chest","Body","MSK"];
 var LS="sp_templates_v1", LSUI="sp_ui_v1";
-var pipWin=null,pipRO=null;
+var pipWin=null;
 var $=function(id){return document.getElementById(id)||(pipWin&&pipWin.document.getElementById(id))};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function clone(o){return JSON.parse(JSON.stringify(o))}
@@ -413,7 +414,7 @@ function renderList(){
   if(S.finished)out+='<li class="finish"><span class="mk">✓</span><span>Checklist complete</span></li>';
   L.innerHTML=out;
   var c=L.querySelector(".cur");
-  if(c&&c.scrollIntoView){try{c.scrollIntoView({block:"nearest"})}catch(e){}}
+  if(c){L.scrollTop=Math.max(0,c.offsetTop-L.offsetTop-L.clientHeight/3)}
 }
 function renderMini(){
   if(!S.items.length){$("ms").textContent="";$("mv").textContent="";$("mi").textContent="Select a study";return}
@@ -432,10 +433,9 @@ function renderAll(){
   $("voice").textContent=ui.voice?"Voice on":"Voice off";
   $("pop").textContent=pipWin?"Dock":"Pop out";
   document.getElementById("stub").hidden=!pipWin;
-  fitSoon();
 }
 function loadStudy(mod,name,quiet){
-  pipHmax=0;S.mod=mod;S.study=name;S.items=items(T,mod,name);S.visited={};S.finished=false;
+  S.mod=mod;S.study=name;S.items=items(T,mod,name);S.visited={};S.finished=false;
   S.cat=categoryOf(T,mod,name)||S.cat;
   var h=headers();
   if(S.items.length&&!quiet){S.idx=h.length?h[0]:0;S.visited[S.idx]=true;speak(spoken(S.items[S.idx]))}
@@ -509,7 +509,7 @@ document.getElementById("app").addEventListener("wheel",function(e){
   else if(!t.closest("#list li,#seqs"))return;
   if(e.shiftKey)wheelStep(e,true);else wheelStep(e);
 },{passive:false});
-$("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll()};
+$("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll();fitPip()};
 function onKey(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   if($("ovl").classList.contains("open")||$("dlg").classList.contains("open"))return;
@@ -756,39 +756,28 @@ function setMsg(t){var m=$("matchmsg");m.textContent=t;m.classList.remove("dflt"
 function note(t){setMsg(t)}
 
 /* ---------- pop-out window ---------- */
-var pipHmax=0;
+var PIPSZ={full:[420,720],min:[360,200]};
 function fitPip(){
   if(!pipWin)return;
   try{
-    var a=pipWin.document.getElementById("app"),w=ui.minimal?360:420;
-    pipWin.document.documentElement.style.overflow=ui.minimal?"hidden":"";
-    var h=Math.ceil(a.getBoundingClientRect().height)+4;
-    if(ui.minimal)pipHmax=0;
-    else{h=Math.max(h,pipHmax);pipHmax=h}
+    var s=ui.minimal?PIPSZ.min:PIPSZ.full;
+    pipWin.document.documentElement.style.overflow="hidden";
     var dh=pipWin.outerHeight-pipWin.innerHeight,dw=pipWin.outerWidth-pipWin.innerWidth;
-    h=Math.min(h+dh,screen.availHeight-60);w+=dw;
-    if(Math.abs(pipWin.outerHeight-h)>2||Math.abs(pipWin.outerWidth-w)>2)pipWin.resizeTo(w,h);
-    setTimeout(function(){
-      if(!pipWin)return;
-      var x=pipWin.document.documentElement.scrollHeight-pipWin.innerHeight;
-      if(x>0)try{pipWin.resizeBy(0,Math.min(x+2,screen.availHeight-pipWin.outerHeight-40))}catch(e){}
-    },80);
+    pipWin.resizeTo(s[0]+dw,Math.min(s[1]+dh,screen.availHeight-60));
   }catch(e){}
 }
-function fitSoon(){if(pipWin)requestAnimationFrame(fitPip)}
 function popToggle(){
   if(pipWin){pipWin.close();return}
   if(!("documentPictureInPicture" in window)){note("Pop-out needs Chrome or Edge 116 or newer.");return}
-  window.documentPictureInPicture.requestWindow({width:ui.minimal?360:420,height:ui.minimal?150:640}).then(function(w){
+  window.documentPictureInPicture.requestWindow({width:(ui.minimal?PIPSZ.min:PIPSZ.full)[0],height:(ui.minimal?PIPSZ.min:PIPSZ.full)[1]}).then(function(w){
     var app=document.getElementById("app"),d=w.document;
     [].forEach.call(document.querySelectorAll("link[rel=stylesheet],style"),function(n){d.head.appendChild(n.cloneNode(true))});
     var th=document.documentElement.getAttribute("data-theme");if(th)d.documentElement.setAttribute("data-theme",th);
     d.body.style.cssText="margin:0;padding:0";
     pipWin=w;app.classList.add("pip");d.body.appendChild(app);
     d.addEventListener("keydown",onKey);
-    if(w.ResizeObserver){pipRO=new w.ResizeObserver(fitSoon);pipRO.observe(app)}
     w.addEventListener("pagehide",function(){
-      if(pipRO)pipRO.disconnect();pipRO=null;pipWin=null;app.classList.remove("pip");
+      pipWin=null;app.classList.remove("pip");
       document.body.insertBefore(app,document.getElementById("ovl"));
       renderAll();
     });
