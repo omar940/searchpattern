@@ -179,11 +179,11 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
     <button class="chip editbtn" id="edit" title="Voice and templates">Settings</button>
   </div>
   <div class="chrome wrap">
-    <form class="match pickable" id="matchform">
-      <input id="match" type="text" placeholder="Paste a study name to match, e.g. CT ABDOMEN PELVIS W CONTRAST" aria-label="Study name to match" autocomplete="off">
-      <button type="submit">Match</button>
+    <form class="match" id="matchform">
+      <input id="match" type="text" placeholder="Search for a study, e.g. CT ABDOMEN PELVIS W CONTRAST" aria-label="Search for a study" autocomplete="off">
+      <button type="submit">Search</button>
     </form>
-    <p class="sub pickable" id="matchmsg">Or pick a modality and study below.</p>
+    <p class="sub" id="matchmsg">Or pick a modality and study below.</p>
     <div class="row mods pickable" id="mods"></div>
     <div class="row cats pickable" id="cats"></div>
     <div class="row studies pickable" id="studies"></div>
@@ -452,10 +452,10 @@ function setMod(m){
 }
 function runMatch(){
   var line=$("match").value.trim();
-  if(!line){$("matchmsg").textContent="Paste a study name first.";return}
+  if(!line){$("matchmsg").textContent="Type a study name first.";return}
   var n=norm(line),mod=detectMod(n)||S.mod,name=bestPreset(mod,n);
-  if(!name){$("matchmsg").textContent="No matching study. Pick one below.";speak("No matching study");return}
-  $("matchmsg").textContent="Matched "+mod+" • "+name;
+  if(!name){$("matchmsg").textContent="No study found. Pick one below.";speak("No study found");return}
+  $("matchmsg").textContent="Loaded "+mod+" • "+name;
   loadStudy(mod,name);
 }
 $("mods").onclick=function(e){var b=e.target.closest("[data-m]");if(b)setMod(b.dataset.m)};
