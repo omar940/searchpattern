@@ -1235,6 +1235,66 @@
     "Calcaneus and talus",
     "Longitudinal arch",
     "Soft tissues"
+   ],
+   "Humerus": [
+    "> AP view",
+    "Glenohumeral joint and humeral head",
+    "Proximal humeral physis and surgical neck",
+    "Humeral shaft cortex and alignment",
+    "Medullary cavity and periosteum",
+    "Distal humerus and supracondylar region",
+    "Elbow joint",
+    "> Lateral view",
+    "Humeral shaft alignment",
+    "Anterior and posterior cortices",
+    "Elbow fat pads and anterior humeral line",
+    "Soft tissues"
+   ],
+   "Forearm": [
+    "> AP view",
+    "Elbow joint and radial head",
+    "Radial shaft cortex and alignment",
+    "Ulnar shaft cortex and alignment",
+    "Interosseous space",
+    "Plastic bowing of radius and ulna",
+    "Distal radial and ulnar physes",
+    "Distal radioulnar joint and wrist",
+    "> Lateral view",
+    "Radiocapitellar line",
+    "Radial and ulnar alignment",
+    "Distal radial metaphysis",
+    "Pronator fat pad and soft tissues"
+   ],
+   "Femur": [
+    "> AP view",
+    "Femoral head and neck",
+    "Greater and lesser trochanters",
+    "Femoral shaft cortex and alignment",
+    "Medullary cavity and periosteum",
+    "Distal femoral metaphysis and physis",
+    "Knee joint",
+    "Soft tissues",
+    "> Lateral view",
+    "Femoral shaft alignment",
+    "Anterior and posterior cortices",
+    "Distal femoral epiphysis",
+    "Knee effusion"
+   ],
+   "Tibia/Fibula": [
+    "> AP view",
+    "Knee joint and proximal tibial physis",
+    "Proximal tibia and fibular head",
+    "Tibial shaft cortex and alignment",
+    "Fibular shaft",
+    "Medullary cavity and periosteum",
+    "Distal tibial metaphysis and physis",
+    "Distal fibula and ankle mortise",
+    "Soft tissues",
+    "> Lateral view",
+    "Tibial and fibular alignment",
+    "Anterior and posterior cortices",
+    "Tibial tubercle and patellar tendon",
+    "Posterior malleolus and ankle joint"
    ]
   },
   "US": {
@@ -1855,10 +1915,14 @@
    ],
    "MSK": [
     "Shoulder",
+    "Humerus",
     "Elbow",
+    "Forearm",
     "Wrist/Hand",
     "Pelvis/Hip",
+    "Femur",
     "Knee",
+    "Tibia/Fibula",
     "Ankle",
     "Foot"
    ]
@@ -1982,7 +2046,11 @@
    "Foot": "FOOT:3, FEET:3, TOE:2, TOES:2, CALCANEUS:2",
    "Neonatal Chest": "NEONATAL:2, NEWBORN:2, NICU:2, BABYGRAM:3, CHEST:2",
    "Neonatal Abdomen": "NEONATAL:2, NEWBORN:2, NICU:2, ABDOMEN:2, ABD:2",
-   "Scoliosis": "SCOLIOSIS:5"
+   "Scoliosis": "SCOLIOSIS:5",
+   "Humerus": "HUMERUS:3, HUMERAL:3",
+   "Forearm": "FOREARM:3, RADIUS:2, ULNA:2, RADIUS/ULNA:3",
+   "Femur": "FEMUR:3, FEMORAL:3, THIGH:2",
+   "Tibia/Fibula": "TIBIA:3, FIBULA:3, TIB/FIB:3, LOWER LEG:2, LEG:1"
   },
   "US": {
    "Abdomen": "ABDOMEN:2, ABD:1, ABDOMINAL:2, RUQ:3, RIGHT UPPER QUADRANT:3, GALLBLADDER:2, LIVER:1",
