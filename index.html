@@ -192,7 +192,7 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
   <div class="ed">
     <header>
       <h2>Settings</h2>
-      <button class="sm" id="ex" aria-label="Close settings" title="Close">✕</button>
+      <div class="tabs" id="etabs" role="tablist"></div>
     </header>
     <div class="subnav"><div class="tabs" id="stabs" role="tablist"><button role="tab" data-v="voice">Voice</button><button role="tab" data-v="templates">Templates</button></div></div>
     <div class="pane" id="evoice" hidden>
@@ -208,30 +208,23 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
         </div>
       </div>
     </div>
-    <div class="tplwrap" id="tplwrap">
-      <div class="tpltools">
-        <div class="tabs" id="etabs" role="tablist"></div>
-        <span class="sp"></span>
-        <div class="grp" role="group" aria-label="Back up and restore">
-          <button class="sm" id="dl" title="Save your templates as a file">Download</button>
-          <button class="sm" id="up" title="Load templates from a file">Upload</button>
-          <input type="file" id="upfile" accept=".json,application/json" hidden>
-          <button class="sm" id="exp" title="Show the JSON to copy">Copy JSON</button>
-          <button class="sm" id="imp" title="Paste JSON">Paste JSON</button>
-          <button class="sm danger" id="reset" title="Replace everything with the original templates">Reset</button>
-        </div>
-      </div>
-      <div class="edbody" id="tplbody">
-        <div class="pane left" id="eleft"></div>
-        <div class="pane" id="eright"></div>
-      </div>
+    <div class="edbody" id="tplbody">
+      <div class="pane left" id="eleft"></div>
+      <div class="pane" id="eright"></div>
     </div>
     <footer>
-      <span class="msg" id="emsg"></span>
+      <span id="tplonly" style="display:contents">
+      <button class="sm" id="dl" title="Save your templates as a file">Download</button>
+      <button class="sm" id="up" title="Load templates from a file">Upload</button>
+      <input type="file" id="upfile" accept=".json,application/json" hidden>
+      <button class="sm" id="exp" title="Show the JSON to copy">Copy JSON</button>
+      <button class="sm" id="imp" title="Paste JSON">Paste JSON</button>
+      <button class="sm danger" id="reset">Reset to defaults</button>
+      </span>
       <span class="sp"></span>
+      <span class="msg" id="emsg"></span>
       <button class="sm" id="ecancel">Cancel</button>
-      <button class="pri" id="esave">Save templates</button>
-      <button class="pri" id="evclose" hidden>Close</button>
+      <button class="pri" id="esave">Save</button>
     </footer>
   </div>
 </div>
@@ -740,8 +733,7 @@ function edOpen(){
 function firstStudy(t,m){for(var i=0;i<CATS.length;i++){var s=studies(t,m,CATS[i]);if(s.length)return s[0]}return null}
 function setView(v){
   var vo=v==="voice";
-  $("evoice").hidden=!vo;$("tplwrap").hidden=vo;
-  $("ecancel").hidden=vo;$("esave").hidden=vo;$("evclose").hidden=!vo;
+  $("evoice").hidden=!vo;$("tplbody").hidden=vo;$("etabs").hidden=vo;$("tplonly").hidden=vo;
   [].forEach.call($("stabs").querySelectorAll("button"),function(b){b.setAttribute("aria-selected",String(b.dataset.v===v))});
 }
 $("stabs").onclick=function(e){var b=e.target.closest("[data-v]");if(b)setView(b.dataset.v)};
@@ -782,8 +774,6 @@ function curRows(){return ED.draft.checklists[ED.mod][ED.name]}
 function edMsg(t){$("emsg").textContent=t}
 $("edit").onclick=edOpen;
 $("ecancel").onclick=function(){edClose()};
-$("ex").onclick=tryClose;
-$("evclose").onclick=tryClose;
 $("esave").onclick=function(){
   T=ensure(ED.draft);
   var ok=lsSet(LS,JSON.stringify(T));
