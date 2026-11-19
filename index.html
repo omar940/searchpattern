@@ -503,9 +503,12 @@ function wheelStep(e,view){
   if(view){if(d>0)nextSeq();else prevSeq()}
   else if(d>0)next();else prev();
 }
-document.getElementById("mini").addEventListener("wheel",function(e){if(ui.minimal&&!e.shiftKey)wheelStep(e)},{passive:false});
-document.getElementById("list").addEventListener("wheel",function(e){if(!ui.minimal&&!e.shiftKey)wheelStep(e)},{passive:false});
-document.getElementById("app").addEventListener("wheel",function(e){if(e.shiftKey)wheelStep(e,true)},{passive:false});
+document.getElementById("app").addEventListener("wheel",function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  if(ui.minimal){if(!t.closest("#mini"))return}
+  else if(!t.closest("#list li,#seqs"))return;
+  if(e.shiftKey)wheelStep(e,true);else wheelStep(e);
+},{passive:false});
 $("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll()};
 function onKey(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return;
