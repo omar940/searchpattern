@@ -57,6 +57,8 @@ button{cursor:pointer}
 .seqs{display:grid;gap:4px}
 .wrap{display:contents}
 [hidden]{display:none!important}
+.app.pk .pickable{display:none}
+#pick{max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none}
 .vs{font-size:13px;max-width:460px}
 .vsb{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center}
 .vsb label{color:var(--mute);font-size:12px}
@@ -153,7 +155,9 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
   .seqs{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:4px;padding-bottom:2px}
   .seqs .btn{flex:none;white-space:nowrap}
   .match input{font-size:16px}
-  #pop,.foot{display:none}
+  #pop,.foot,.top h1{display:none}
+  .top{justify-content:flex-end;flex-wrap:wrap}
+  #pick{margin-right:auto}
   .big{padding:14px}
   .edbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
   .pane.left{border-right:0;border-bottom:1px solid var(--line);max-height:30vh}
@@ -166,21 +170,22 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
 <main class="app" id="app">
   <div class="top">
     <h1>Search Pattern</h1>
+    <button class="chip" id="pick" aria-expanded="true" title="Show or hide the modality and study pickers"></button>
     <button class="chip" id="voice" aria-pressed="true" title="Read each item aloud">Voice</button>
     <button class="chip" id="pop" title="Pop out into a small always-on-top window">Pop out</button>
     <button class="chip" id="minbtn" title="Show only the current item">Minimal</button>
     <button class="chip editbtn" id="edit" title="Voice and templates">Settings</button>
   </div>
   <div class="chrome wrap">
-    <form class="match" id="matchform">
+    <form class="match pickable" id="matchform">
       <input id="match" type="text" placeholder="Paste a study name to match, e.g. CT ABDOMEN PELVIS W CONTRAST" aria-label="Study name to match" autocomplete="off">
       <button type="submit">Match</button>
     </form>
-    <p class="sub" id="matchmsg">Or pick a modality and study below.</p>
-    <div class="row mods" id="mods"></div>
-    <div class="row cats" id="cats"></div>
-    <div class="row studies" id="studies"></div>
-    <hr>
+    <p class="sub pickable" id="matchmsg">Or pick a modality and study below.</p>
+    <div class="row mods pickable" id="mods"></div>
+    <div class="row cats pickable" id="cats"></div>
+    <div class="row studies pickable" id="studies"></div>
+    <hr class="pickable">
     <div class="seqs" id="seqs"></div>
   </div>
   <div class="mini" id="mini" aria-live="polite">
@@ -274,7 +279,7 @@ function spoken(s){return isHdr(s)?s.slice(2):s}
 
 /* ---------- state ---------- */
 var ui={voice:true,minimal:false,voiceURI:"",rate:1.1};
-try{var u=JSON.parse(lsGet(LSUI)||"{}");if(typeof u.voice==="boolean")ui.voice=u.voice;if(typeof u.minimal==="boolean")ui.minimal=u.minimal;if(typeof u.voiceURI==="string")ui.voiceURI=u.voiceURI;if(typeof u.rate==="number"&&u.rate>=0.6&&u.rate<=2)ui.rate=u.rate}catch(e){}
+try{var u=JSON.parse(lsGet(LSUI)||"{}");if(typeof u.voice==="boolean")ui.voice=u.voice;if(typeof u.minimal==="boolean")ui.minimal=u.minimal;if(typeof u.pk==="boolean")ui.pk=u.pk;if(typeof u.voiceURI==="string")ui.voiceURI=u.voiceURI;if(typeof u.rate==="number"&&u.rate>=0.6&&u.rate<=2)ui.rate=u.rate}catch(e){}
 function saveUi(){lsSet(LSUI,JSON.stringify(ui))}
 var S={mod:"XR",cat:"Chest",study:null,items:[],idx:-1,visited:{},finished:false};
 
@@ -393,6 +398,9 @@ function renderAll(){
   renderMods();renderCats();renderStudies();renderSeq();renderList();renderMini();
   $("app").classList.toggle("min",ui.minimal);
   $("minbtn").textContent=ui.minimal?"Full":"Minimal";
+  $("app").classList.toggle("pk",!!ui.pk);
+  $("pick").textContent=(ui.pk?"\u25B8 ":"\u25BE ")+(ui.pk&&S.study?S.mod+" \u2022 "+S.study:"Study");
+  $("pick").setAttribute("aria-expanded",ui.pk?"false":"true");
   $("voice").setAttribute("aria-pressed",ui.voice?"true":"false");
   $("voice").textContent=ui.voice?"Voice on":"Voice off";
   $("pop").textContent=pipWin?"Dock":"Pop out";
@@ -456,6 +464,7 @@ $("list").onclick=function(e){var li=e.target.closest("li[data-i]");if(li)go(+li
 $("next").onclick=next;$("prev").onclick=prev;$("nseq").onclick=nextSeq;$("pseq").onclick=prevSeq;
 $("matchform").onsubmit=function(e){e.preventDefault();runMatch()};
 $("voice").onclick=function(){ui.voice=!ui.voice;if(!ui.voice&&"speechSynthesis" in window)speechSynthesis.cancel();saveUi();renderAll()};
+$("pick").onclick=function(){ui.pk=!ui.pk;saveUi();renderAll()};
 $("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll()};
 function onKey(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return;
