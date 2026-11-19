@@ -56,6 +56,12 @@ button{cursor:pointer}
 .studies .btn{font-size:12.5px}
 .seqs{display:grid;gap:4px}
 .wrap{display:contents}
+.vs{font-size:13px}
+.vs summary{cursor:pointer;color:var(--mute);width:max-content}
+.vsb{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;margin-top:8px}
+.vsb label{color:var(--mute);font-size:12px}
+.vsb select{min-width:0;width:100%}
+.vsb button{grid-column:2;justify-self:start}
 .app.pip .editbtn{display:none}
 .app.pip{max-width:none;border:0;border-radius:0;min-height:100vh}
 hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
@@ -155,6 +161,16 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
       <button type="submit">Match</button>
     </form>
     <p class="sub" id="matchmsg">Or pick a modality and study below.</p>
+    <details class="vs" id="vs">
+      <summary>Voice settings</summary>
+      <div class="vsb">
+        <label for="vsel">Voice</label>
+        <select id="vsel"></select>
+        <label for="vrate">Speed <span id="vrv"></span></label>
+        <input type="range" id="vrate" min="0.6" max="2" step="0.1">
+        <button class="sm" id="vtest" type="button">Test voice</button>
+      </div>
+    </details>
     <div class="row mods" id="mods"></div>
     <div class="row cats" id="cats"></div>
     <div class="row studies" id="studies"></div>
@@ -458,16 +474,45 @@ function isHdr(s){return s.indexOf("> ")===0}
 function spoken(s){return isHdr(s)?s.slice(2):s}
 
 /* ---------- state ---------- */
-var ui={voice:true,minimal:false};
-try{var u=JSON.parse(lsGet(LSUI)||"{}");if(typeof u.voice==="boolean")ui.voice=u.voice;if(typeof u.minimal==="boolean")ui.minimal=u.minimal}catch(e){}
+var ui={voice:true,minimal:false,voiceURI:"",rate:1.1};
+try{var u=JSON.parse(lsGet(LSUI)||"{}");if(typeof u.voice==="boolean")ui.voice=u.voice;if(typeof u.minimal==="boolean")ui.minimal=u.minimal;if(typeof u.voiceURI==="string")ui.voiceURI=u.voiceURI;if(typeof u.rate==="number"&&u.rate>=0.6&&u.rate<=2)ui.rate=u.rate}catch(e){}
 function saveUi(){lsSet(LSUI,JSON.stringify(ui))}
 var S={mod:"XR",cat:"Chest",study:null,items:[],idx:-1,visited:{},finished:false};
 
 /* ---------- speech ---------- */
-function speak(t){
-  if(!ui.voice||!t||!("speechSynthesis" in window))return;
-  try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.rate=1.1;speechSynthesis.speak(u)}catch(e){}
+function say(t){
+  if(!t||!("speechSynthesis" in window))return;
+  try{
+    speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(t);u.rate=ui.rate;
+    if(ui.voiceURI){var v=speechSynthesis.getVoices().filter(function(x){return x.voiceURI===ui.voiceURI})[0];if(v){u.voice=v;u.lang=v.lang}}
+    speechSynthesis.speak(u);
+  }catch(e){}
 }
+function speak(t){if(ui.voice)say(t)}
+function fillVoices(){
+  if(!("speechSynthesis" in window))return;
+  var vs=speechSynthesis.getVoices().slice().sort(function(a,b){
+    var ae=/^en/i.test(a.lang)?0:1,be=/^en/i.test(b.lang)?0:1;
+    return ae-be||a.name.localeCompare(b.name);
+  });
+  var sel=$("vsel");if(!sel)return;
+  sel.innerHTML='<option value="">Browser default</option>'+vs.map(function(v){
+    return '<option value="'+esc(v.voiceURI)+'">'+esc(v.name+" ("+v.lang+")")+'</option>';
+  }).join("");
+  sel.value=ui.voiceURI;
+  if(sel.value!==ui.voiceURI)sel.value="";
+}
+(function(){
+  if(!("speechSynthesis" in window)){var el=document.getElementById("vs");if(el)el.style.display="none";return}
+  fillVoices();
+  try{speechSynthesis.addEventListener("voiceschanged",fillVoices)}catch(e){speechSynthesis.onvoiceschanged=fillVoices}
+  var r=document.getElementById("vrate");r.value=ui.rate;document.getElementById("vrv").textContent=Number(ui.rate).toFixed(1)+"x";
+  document.getElementById("vsel").onchange=function(){ui.voiceURI=this.value;saveUi();say("Right upper lobe")};
+  r.oninput=function(){ui.rate=parseFloat(this.value);document.getElementById("vrv").textContent=ui.rate.toFixed(1)+"x";saveUi()};
+  r.onchange=function(){say("Right upper lobe")};
+  document.getElementById("vtest").onclick=function(){say("Right upper lobe arteries")};
+})();
 
 /* ---------- study matching ---------- */
 var MODTOK={"CT":"CT","CTA":"CT","CTV":"CT","MR":"MR","MRI":"MR","MRA":"MR","MRV":"MR","MRCP":"MR","XR":"XR","DX":"XR","CR":"XR","RADIOGRAPH":"XR","RADIOGRAPHS":"XR","XRAY":"XR","US":"US","ULTRASOUND":"US","SONOGRAM":"US","DOPPLER":"US","DUPLEX":"US","FL":"FL","FLUORO":"FL","FLUOROSCOPY":"FL","FLUOROSCOPIC":"FL","VIDEOFLUOROSCOPIC":"FL","VFSS":"FL","UGI":"FL","SBFT":"FL","ESOPHAGRAM":"FL","VCUG":"FL","CYSTOURETHROGRAM":"FL","ENEMA":"FL","LOOPOGRAM":"FL","SWALLOW":"FL"};
