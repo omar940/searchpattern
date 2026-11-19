@@ -90,6 +90,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .mini .mv{color:var(--ok);font-size:17px;font-weight:600}
 .mini .mi{color:var(--cur);font-size:24px;font-weight:600;line-height:1.25}
 .app.min .chrome{display:none}
+.app.min #matchmsg.dflt{display:none}
 .app.min .mini{display:flex;flex:1;justify-content:center}
 .foot{color:var(--mute);font-size:11.5px;margin:0}
 kbd{font-family:var(--mono);font-size:11px;background:var(--btn);border-radius:3px;padding:1px 5px}
@@ -178,12 +179,14 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
     <button class="chip" id="minbtn" title="Show only the current item">Minimal</button>
     <button class="chip editbtn" id="edit" title="Voice and templates">Settings</button>
   </div>
-  <div class="chrome wrap">
+  <div class="wrap">
     <form class="match" id="matchform">
       <input id="match" type="text" placeholder="Search for a study, e.g. CT ABDOMEN PELVIS W CONTRAST" aria-label="Search for a study" autocomplete="off">
       <button type="submit">Search</button>
     </form>
-    <p class="sub" id="matchmsg">Or pick a modality and study below.</p>
+    <p class="sub dflt" id="matchmsg">Or pick a modality and study below.</p>
+  </div>
+  <div class="chrome wrap">
     <div class="row mods pickable" id="mods"></div>
     <div class="row cats pickable" id="cats"></div>
     <div class="row studies pickable" id="studies"></div>
@@ -452,10 +455,10 @@ function setMod(m){
 }
 function runMatch(){
   var line=$("match").value.trim();
-  if(!line){$("matchmsg").textContent="Type a study name first.";return}
+  if(!line){setMsg("Type a study name first.");return}
   var n=norm(line),mod=detectMod(n)||S.mod,name=bestPreset(mod,n);
-  if(!name){$("matchmsg").textContent="No study found. Pick one below.";speak("No study found");return}
-  $("matchmsg").textContent="Loaded "+mod+" • "+name;
+  if(!name){setMsg("No study found. Pick one below.");speak("No study found");return}
+  setMsg("Loaded "+mod+" • "+name);
   loadStudy(mod,name);
 }
 $("mods").onclick=function(e){var b=e.target.closest("[data-m]");if(b)setMod(b.dataset.m)};
@@ -578,7 +581,7 @@ $("esave").onclick=function(){
   if(S.study&&hasStudy(T,S.mod,S.study)){S.items=items(T,S.mod,S.study);S.idx=Math.min(S.idx,S.items.length-1);S.cat=categoryOf(T,S.mod,S.study)||S.cat}
   else if(S.study){S.study=null;S.items=[];S.idx=-1}
   edClose();renderAll();
-  $("matchmsg").textContent=ok?"Templates saved in this browser.":"Saved for this session only. Use Export to keep a copy.";
+  setMsg(ok?"Templates saved in this browser.":"Saved for this session only. Use Export to keep a copy.");
 };
 $("etabs").onclick=function(e){var b=e.target.closest("[data-m]");if(!b)return;ED.mod=b.dataset.m;ED.name=firstStudy(ED.draft,ED.mod);ED.focus=-1;edRender()};
 $("eleft").onclick=async function(e){
@@ -707,7 +710,8 @@ document.addEventListener("keydown",function(e){
   }
 });
 
-function note(t){$("matchmsg").textContent=t}
+function setMsg(t){var m=$("matchmsg");m.textContent=t;m.classList.remove("dflt")}
+function note(t){setMsg(t)}
 
 /* ---------- pop-out window ---------- */
 var preMin=false;
