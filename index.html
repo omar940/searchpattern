@@ -714,18 +714,17 @@ var preMin=false;
 function popToggle(){
   if(pipWin){pipWin.close();return}
   if(!("documentPictureInPicture" in window)){note("Pop-out needs Chrome or Edge 116 or newer.");return}
-  window.documentPictureInPicture.requestWindow({width:380,height:520}).then(function(w){
+  window.documentPictureInPicture.requestWindow({width:420,height:720}).then(function(w){
     var app=document.getElementById("app"),d=w.document;
     [].forEach.call(document.querySelectorAll("link[rel=stylesheet],style"),function(n){d.head.appendChild(n.cloneNode(true))});
     var th=document.documentElement.getAttribute("data-theme");if(th)d.documentElement.setAttribute("data-theme",th);
     d.body.style.cssText="margin:0;padding:0";
     pipWin=w;app.classList.add("pip");d.body.appendChild(app);
-    preMin=ui.minimal;ui.minimal=true;
     d.addEventListener("keydown",onKey);
     w.addEventListener("pagehide",function(){
       pipWin=null;app.classList.remove("pip");
       document.body.insertBefore(app,document.getElementById("ovl"));
-      ui.minimal=preMin;renderAll();
+      renderAll();
     });
     renderAll();
   }).catch(function(){note("The browser did not allow a pop-out window here. Click Pop out again.")});
