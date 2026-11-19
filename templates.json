@@ -3,7 +3,7 @@
   "CT": {
    "CTA PE": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Main pulmonary artery",
     "Right pulmonary artery",
     "Right upper lobe arteries",
@@ -25,7 +25,7 @@
    ],
    "Chest/Abd/Pelvis": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Thyroid and lower neck",
     "Airways",
     "Right lung, left lung, and pleura",
@@ -53,7 +53,7 @@
    ],
    "Abd/Pelvis": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Lung bases; heart and pericardium",
     "Esophagus, stomach, and duodenum",
     "Small bowel and appendix",
@@ -75,7 +75,7 @@
    ],
    "CTA Abd/Pelvis": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Lung bases; heart and pericardium",
     "Abdominal aorta and celiac artery",
     "Hepatic arteries",
@@ -106,7 +106,7 @@
    ],
    "Head": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Scalp and calvarium",
     "Extra-axial spaces and sulci",
     "Cerebral cortex and gray-white junction",
@@ -120,7 +120,7 @@
     "Upper cervical spine"
    ],
    "Temporal Bones": [
-    "Lines and tubes",
+    "Support devices",
     "External auditory canal",
     "Temporomandibular joint",
     "Tympanic membrane",
@@ -137,7 +137,7 @@
    ],
    "Neck": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Visualized cerebellum and brainstem; orbits",
     "Paranasal sinuses and skull base",
     "Nasopharynx and parapharyngeal space",
@@ -156,7 +156,7 @@
    ],
    "C-Spine": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Alignment",
     "Skull base and occipital condyles",
     "Craniocervical junction",
@@ -173,7 +173,7 @@
    ],
    "T-Spine": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Alignment",
     "Vertebral bodies and intervertebral discs",
     "Pedicles and posterior elements",
@@ -188,7 +188,7 @@
    ],
    "L-Spine": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Alignment",
     "Lumbosacral junction and vertebral numbering",
     "Vertebral bodies and intervertebral discs",
@@ -202,7 +202,7 @@
     "Abdominal aorta"
    ],
    "CTA Head/Neck": [
-    "Lines and tubes",
+    "Support devices",
     "Aortic arch and great vessel origins",
     "Right common carotid artery",
     "Right carotid bifurcation",
@@ -229,7 +229,7 @@
     "Lung apices and cervical spine"
    ],
    "Orbits": [
-    "Lines and tubes",
+    "Support devices",
     "Globe and lens; optic nerve-sheath complex",
     "Intraconal and extraconal fat",
     "Extraocular muscles",
@@ -240,7 +240,7 @@
     "Frontal lobes"
    ],
    "Sella": [
-    "Lines and tubes",
+    "Support devices",
     "Sella turcica and pituitary gland",
     "Parasellar structures",
     "Sphenoid sinus and clivus"
@@ -252,7 +252,7 @@
    ],
    "Chest w/ Contrast": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Thyroid and lower neck",
     "Trachea and central airways",
     "Right lung, left lung, and pleura",
@@ -275,7 +275,7 @@
    ],
    "Chest w/o Contrast": [
     "Scout",
-    "Lines and tubes",
+    "Support devices",
     "Thyroid and lower neck",
     "Trachea and central airways",
     "Right lung, left lung, and pleura",
@@ -294,7 +294,7 @@
   "MR": {
    "Chest": [
     "> Localizers",
-    "Lines and tubes",
+    "Support devices",
     "Lower neck",
     "Lungs",
     "Liver and spleen",
@@ -317,7 +317,7 @@
    ],
    "Abdomen": [
     "> Coronal T2 single-shot",
-    "Lines and tubes",
+    "Support devices",
     "Lung bases",
     "Stomach and bowel; mesentery and peritoneum",
     "Abdominal wall",
@@ -345,7 +345,7 @@
    ],
    "Pelvis": [
     "> Sagittal T2",
-    "Lines and tubes",
+    "Support devices",
     "Bladder and urethra",
     "Uterus and cervix",
     "Rectum and sigmoid colon; pelvic floor",
@@ -370,7 +370,7 @@
    ],
    "Appendix": [
     "> Localizers",
-    "Lines and tubes",
+    "Support devices",
     "Lung bases",
     "> Coronal T2 HASTE",
     "Liver and spleen",
@@ -399,7 +399,7 @@
    ],
    "Enterography": [
     "> Coronal T2 single-shot",
-    "Lines and tubes",
+    "Support devices",
     "Stomach and duodenum; jejunum; and ileum",
     "Terminal ileum, ileocecal valve, and appendix",
     "Colon",
@@ -425,7 +425,7 @@
    ],
    "Urogram": [
     "> Localizers",
-    "Lines and tubes",
+    "Support devices",
     "Liver",
     "Pancreas and spleen",
     "Spine",
@@ -454,7 +454,7 @@
     "Brainstem and cerebellum",
     "Bone marrow",
     "> Sagittal T1",
-    "Lines and tubes",
+    "Support devices",
     "Pituitary and corpus callosum",
     "Pineal region",
     "Cerebellar tonsils and craniocervical junction",
@@ -497,7 +497,7 @@
    ],
    "Brain Seizure": [
     "> Coronal high-resolution T2",
-    "Lines and tubes",
+    "Support devices",
     "Right hippocampus and left hippocampus",
     "Fornices and mammillary bodies",
     "> Coronal FLAIR",
@@ -519,7 +519,7 @@
    ],
    "Orbits": [
     "> Axial T2",
-    "Lines and tubes",
+    "Support devices",
     "Globes and optic nerve-sheath complex",
     "Paranasal sinuses",
     "Frontal lobes; pituitary and sella",
@@ -540,7 +540,7 @@
    ],
    "IAC": [
     "> Axial 3D heavily T2",
-    "Lines and tubes",
+    "Support devices",
     "Cerebellopontine angles",
     "Anterior inferior cerebellar arteries",
     "Right internal auditory canal",
@@ -567,7 +567,7 @@
    ],
    "Sella": [
     "> Sagittal pre-contrast T1",
-    "Lines and tubes",
+    "Support devices",
     "Posterior pituitary bright spot",
     "Sella turcica",
     "Clivus",
@@ -588,7 +588,7 @@
    ],
    "Neck": [
     "> Axial T1",
-    "Lines and tubes",
+    "Support devices",
     "Parotid glands",
     "Parapharyngeal space and retropharyngeal space",
     "Masticator space and carotid space",
@@ -614,7 +614,7 @@
    ],
    "C-Spine": [
     "> Localizers",
-    "Lines and tubes",
+    "Support devices",
     "Pharynx and larynx; neck lymph nodes",
     "Lung apices",
     "> Sagittal T1",
@@ -635,7 +635,7 @@
    ],
    "T-Spine": [
     "> Localizers",
-    "Lines and tubes",
+    "Support devices",
     "Vertebral numbering",
     "Lungs and pleura",
     "Liver and spleen",
@@ -655,7 +655,7 @@
    ],
    "L-Spine": [
     "> Localizers",
-    "Lines and tubes",
+    "Support devices",
     "Vertebral numbering",
     "Kidneys; retroperitoneum and aorta",
     "> Sagittal T1",
@@ -676,7 +676,7 @@
    ],
    "Total Spine": [
     "> Localizers",
-    "Lines and tubes",
+    "Support devices",
     "Coronal alignment",
     "Neck soft tissues and lymph nodes",
     "Lungs and mediastinum",
@@ -870,7 +870,7 @@
    ],
    "Infection": [
     "> T1 without fat-sat",
-    "Lines and tubes",
+    "Support devices",
     "Bone marrow and cortex",
     "Skin and subcutaneous fat",
     "> Fat-sat T2 or STIR",
@@ -1011,7 +1011,7 @@
   "XR": {
    "Chest": [
     "> PA or AP view",
-    "Lines and tubes",
+    "Support devices",
     "Trachea and lung volumes",
     "Right lung, left lung, and lung apices",
     "Pleura and costophrenic angles",
@@ -1034,7 +1034,8 @@
     "> AP view",
     "Endotracheal tube and enteric tube",
     "Umbilical venous catheter",
-    "Umbilical arterial catheter and other lines",
+    "Umbilical arterial catheter",
+    "Other support devices",
     "Thymus and mediastinum; heart",
     "Right lung, left lung, and pleural spaces",
     "Diaphragm and subdiaphragmatic spaces",
@@ -1045,7 +1046,7 @@
    ],
    "Abdomen": [
     "> Supine view",
-    "Lines and tubes",
+    "Support devices",
     "Lung bases",
     "Stomach, bowel, and rectum",
     "Liver and spleen",
@@ -1625,7 +1626,7 @@
    ],
    "UGI": [
     "> Scout image",
-    "Bowel gas pattern; tubes and lines",
+    "Bowel gas pattern and support devices",
     "Abnormal calcifications",
     "> Esophagus",
     "Esophageal caliber",
@@ -1652,7 +1653,7 @@
    ],
    "UGI Malrotation": [
     "> Scout image",
-    "Bowel gas pattern; tubes and lines",
+    "Bowel gas pattern and support devices",
     "> Frontal view",
     "Duodenojejunal junction position",
     "Ligament of Treitz level and duodenal sweep",
@@ -1673,7 +1674,7 @@
    ],
    "UGI/SBFT": [
     "> Scout image",
-    "Bowel gas pattern; tubes and lines",
+    "Bowel gas pattern and support devices",
     "Abnormal calcifications",
     "> Esophagus and stomach",
     "Esophageal contour, reflux, and hiatal hernia",
@@ -1698,7 +1699,7 @@
    "Contrast Enema": [
     "> Scout image",
     "Bowel gas pattern and free air",
-    "Tubes and lines",
+    "Support devices",
     "Spine and sacrum",
     "> Rectum",
     "Rectal caliber and rectosigmoid ratio",
@@ -1780,7 +1781,7 @@
    ],
    "NJ/NG Tube": [
     "> Scout image",
-    "Bowel gas pattern; tubes and lines",
+    "Bowel gas pattern and support devices",
     "> Tube position",
     "Route and tip location",
     "Tip beyond the ligament of Treitz",
@@ -1794,7 +1795,7 @@
    "Distal Loopogram": [
     "> Scout image",
     "Bowel gas pattern; spine and sacrum",
-    "Tubes and lines",
+    "Support devices",
     "> Distal bowel",
     "Stoma and catheter position",
     "Distal colon caliber",
