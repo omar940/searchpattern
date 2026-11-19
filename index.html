@@ -65,7 +65,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .match button{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:7px 12px;font-size:13px;font-weight:500}
 .list{list-style:none;margin:0;padding:0;flex:1 1 auto;min-height:140px;overflow-y:auto;position:relative}
 .list li{padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--text);display:flex;align-items:flex-start;gap:8px}
-.list li>span:not(.mk){flex:1;min-width:0;overflow-wrap:anywhere;white-space:normal}
+.list li>span:not(.mk){flex:0 1 auto;min-width:0;overflow-wrap:anywhere;white-space:normal}
 .list li:hover{background:var(--btn-off)}
 .list li .mk{width:1.1em;flex:none;color:var(--mute);font-family:var(--mono);font-size:13px}
 .list li.done{color:var(--done)}
@@ -75,6 +75,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .list .empty{color:var(--mute);padding:10px 8px;cursor:default}
 .nav{display:grid;grid-template-columns:1fr 2fr;gap:6px}
 .nav2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.nav{position:sticky;bottom:0;z-index:5;background:var(--panel);padding:8px 0 4px;box-shadow:0 -1px 0 var(--line)}
 .big{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:12px;font-size:15px;font-weight:600}
 .big.alt{background:var(--btn);color:var(--text);font-weight:500}
 .nav2 .btn{font-size:12px;color:var(--mute)}
@@ -83,12 +84,13 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .mini .ms .m{color:var(--c-mod);font-weight:600}
 .mini .ms .s{color:var(--c-study)}
 .mini .mv{color:var(--c-view);font-size:17px;font-weight:600}
-.mini .mi{color:var(--cur);font-size:24px;font-weight:600;line-height:1.25}
+.mini .mi{align-self:flex-start;color:var(--cur);font-size:24px;font-weight:600;line-height:1.25}
 .app.min .chrome{display:none}
 .app.min #matchmsg.dflt{display:none}
 .app.min .mini{display:flex;flex:1;justify-content:center}
 .app.pip.min{min-height:0;padding:8px;gap:6px}
 .app.min .foot{display:none}
+.app.min .nav{padding:2px 0 0}
 .app.min .top h1{font-size:13px}
 .app.min .chip{padding:3px 7px;font-size:11px}
 .app.min .match input{padding:4px 8px}
@@ -499,8 +501,8 @@ function wheelStep(e){
   var n=Date.now();if(n-wheelT<250)return;wheelT=n;
   if(e.deltaY>0)next();else prev();
 }
-document.getElementById("mini").addEventListener("wheel",function(e){if(ui.minimal)wheelStep(e)},{passive:false});
-document.getElementById("list").addEventListener("wheel",function(e){if(!ui.minimal)wheelStep(e)},{passive:false});
+document.getElementById("mi").addEventListener("wheel",function(e){if(ui.minimal)wheelStep(e)},{passive:false});
+document.getElementById("list").addEventListener("wheel",function(e){if(!ui.minimal&&e.target.closest&&e.target.closest("li > span:not(.mk)"))wheelStep(e)},{passive:false});
 $("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll()};
 function onKey(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return;
