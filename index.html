@@ -202,7 +202,7 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
     <button class="btn" id="pseq">Previous view</button>
     <button class="btn" id="nseq">Next view</button>
   </div>
-  <p class="foot"><kbd>Space</kbd> or <kbd>→</kbd> next &nbsp; <kbd>←</kbd> back &nbsp; <kbd>↓</kbd> next view &nbsp; <kbd>↑</kbd> previous view</p>
+  <p class="foot"><kbd>Space</kbd> or <kbd>↓</kbd> next item &nbsp; <kbd>↑</kbd> back &nbsp; <kbd>→</kbd> next view &nbsp; <kbd>←</kbd> previous view</p>
 </main>
 
 <div class="ovl" id="ovl" role="dialog" aria-modal="true" aria-label="Settings">
@@ -475,10 +475,10 @@ function onKey(e){
   if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
   if(e.key==="Escape")return;
   var k=e.key,f=true;
-  if(k===" "||k==="ArrowRight"){if(tag==="BUTTON"&&k===" ")return;next()}
-  else if(k==="ArrowLeft")prev();
-  else if(k==="ArrowDown"||k==="]")nextSeq();
-  else if(k==="ArrowUp"||k==="[")prevSeq();
+  if(k===" "||k==="ArrowDown"){if(tag==="BUTTON"&&k===" ")return;next()}
+  else if(k==="ArrowUp")prev();
+  else if(k==="ArrowRight"||k==="]")nextSeq();
+  else if(k==="ArrowLeft"||k==="[")prevSeq();
   else f=false;
   if(f)e.preventDefault();
 }
