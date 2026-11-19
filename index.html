@@ -100,6 +100,12 @@ kbd{font-family:var(--mono);font-size:11px;background:var(--btn);border-radius:3
 .tabs button{background:var(--btn);border:0;border-radius:4px;padding:5px 11px;font-weight:600;font-size:13px}
 .tabs button[aria-selected="true"]{background:var(--accent);color:#fff}
 .edbody{flex:1;min-height:0;display:grid;grid-template-columns:260px 1fr}
+.tplwrap{flex:1;min-height:0;display:flex;flex-direction:column}
+#evoice{flex:1}
+.subnav{padding:8px 14px;border-bottom:1px solid var(--line)}
+.tpltools{display:flex;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tpltools .sp{flex:1}
+.grp{display:flex;gap:4px;flex-wrap:wrap}
 .pane{overflow-y:auto;padding:12px 14px;min-height:0}
 .pane.left{border-right:1px solid var(--line)}
 .cat-h{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin:12px 0 4px}
@@ -186,9 +192,9 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
   <div class="ed">
     <header>
       <h2>Settings</h2>
-      <div class="tabs" id="stabs" role="tablist"><button role="tab" data-v="voice">Voice</button><button role="tab" data-v="templates">Templates</button></div>
-      <div class="tabs" id="etabs" role="tablist"></div>
+      <button class="sm" id="ex" aria-label="Close settings" title="Close">✕</button>
     </header>
+    <div class="subnav"><div class="tabs" id="stabs" role="tablist"><button role="tab" data-v="voice">Voice</button><button role="tab" data-v="templates">Templates</button></div></div>
     <div class="pane" id="evoice" hidden>
       <div class="vs" id="vs">
         <h3 style="margin:0 0 4px;font-size:15px">Voice</h3>
@@ -202,23 +208,30 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
         </div>
       </div>
     </div>
-    <div class="edbody" id="tplbody">
-      <div class="pane left" id="eleft"></div>
-      <div class="pane" id="eright"></div>
+    <div class="tplwrap" id="tplwrap">
+      <div class="tpltools">
+        <div class="tabs" id="etabs" role="tablist"></div>
+        <span class="sp"></span>
+        <div class="grp" role="group" aria-label="Back up and restore">
+          <button class="sm" id="dl" title="Save your templates as a file">Download</button>
+          <button class="sm" id="up" title="Load templates from a file">Upload</button>
+          <input type="file" id="upfile" accept=".json,application/json" hidden>
+          <button class="sm" id="exp" title="Show the JSON to copy">Copy JSON</button>
+          <button class="sm" id="imp" title="Paste JSON">Paste JSON</button>
+          <button class="sm danger" id="reset" title="Replace everything with the original templates">Reset</button>
+        </div>
+      </div>
+      <div class="edbody" id="tplbody">
+        <div class="pane left" id="eleft"></div>
+        <div class="pane" id="eright"></div>
+      </div>
     </div>
     <footer>
-      <span id="tplonly" style="display:contents">
-      <button class="sm" id="dl" title="Save your templates as a file">Download</button>
-      <button class="sm" id="up" title="Load templates from a file">Upload</button>
-      <input type="file" id="upfile" accept=".json,application/json" hidden>
-      <button class="sm" id="exp" title="Show the JSON to copy">Copy JSON</button>
-      <button class="sm" id="imp" title="Paste JSON">Paste JSON</button>
-      <button class="sm danger" id="reset">Reset to defaults</button>
-      </span>
-      <span class="sp"></span>
       <span class="msg" id="emsg"></span>
+      <span class="sp"></span>
       <button class="sm" id="ecancel">Cancel</button>
-      <button class="pri" id="esave">Save</button>
+      <button class="pri" id="esave">Save templates</button>
+      <button class="pri" id="evclose" hidden>Close</button>
     </footer>
   </div>
 </div>
@@ -727,10 +740,19 @@ function edOpen(){
 function firstStudy(t,m){for(var i=0;i<CATS.length;i++){var s=studies(t,m,CATS[i]);if(s.length)return s[0]}return null}
 function setView(v){
   var vo=v==="voice";
-  $("evoice").hidden=!vo;$("tplbody").hidden=vo;$("etabs").hidden=vo;$("tplonly").hidden=vo;
+  $("evoice").hidden=!vo;$("tplwrap").hidden=vo;
+  $("ecancel").hidden=vo;$("esave").hidden=vo;$("evclose").hidden=!vo;
   [].forEach.call($("stabs").querySelectorAll("button"),function(b){b.setAttribute("aria-selected",String(b.dataset.v===v))});
 }
 $("stabs").onclick=function(e){var b=e.target.closest("[data-v]");if(b)setView(b.dataset.v)};
+function edDirty(){return !!ED&&JSON.stringify(ED.draft)!==JSON.stringify(T)}
+async function tryClose(){
+  if(edDirty()){
+    var y=await askYes("Discard changes?","You have template edits that are not saved. Close without saving them?","Discard");
+    if(!y){setView("templates");return}
+  }
+  edClose();
+}
 function edClose(){$("ovl").classList.remove("open");ED=null}
 function edRender(){
   $("etabs").innerHTML=MODS.map(function(m){return '<button role="tab" data-m="'+m+'" aria-selected="'+(m===ED.mod)+'">'+m+'</button>'}).join("");
@@ -760,6 +782,8 @@ function curRows(){return ED.draft.checklists[ED.mod][ED.name]}
 function edMsg(t){$("emsg").textContent=t}
 $("edit").onclick=edOpen;
 $("ecancel").onclick=function(){edClose()};
+$("ex").onclick=tryClose;
+$("evclose").onclick=tryClose;
 $("esave").onclick=function(){
   T=ensure(ED.draft);
   var ok=lsSet(LS,JSON.stringify(T));
@@ -891,7 +915,7 @@ $("reset").onclick=async function(){
 document.addEventListener("keydown",function(e){
   if(e.key==="Escape"){
     if($("dlg").classList.contains("open"))dlgClose(null);
-    else if($("ovl").classList.contains("open"))edClose();
+    else if($("ovl").classList.contains("open"))tryClose();
   }
 });
 
