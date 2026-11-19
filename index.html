@@ -275,7 +275,7 @@ window.DEFAULT_TEMPLATES = {"checklists": {"CT": {"CTA PE": ["Scout", "Support d
 "use strict";
 var MODS=["XR","US","FL","CT","MR"], CATS=["Neuro","Chest","Body","MSK"];
 var LS="sp_templates_v1", LSUI="sp_ui_v1";
-var pipWin=null;
+var pipWin=null,pipRO=null;
 var $=function(id){return document.getElementById(id)||(pipWin&&pipWin.document.getElementById(id))};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function clone(o){return JSON.parse(JSON.stringify(o))}
@@ -726,7 +726,8 @@ document.addEventListener("keydown",function(e){
   }
 });
 
-function setMsg(t){var m=$("matchmsg");m.textContent=t;m.classList.remove("dflt")}
+var msgT=0,DFLT="Or pick a modality and study below.";
+function setMsg(t){var m=$("matchmsg");m.textContent=t;m.classList.remove("dflt");clearTimeout(msgT);msgT=setTimeout(function(){m.textContent=DFLT;m.classList.add("dflt")},3500)}
 function note(t){setMsg(t)}
 
 /* ---------- pop-out window ---------- */
@@ -734,10 +735,16 @@ function fitPip(){
   if(!pipWin)return;
   try{
     var a=pipWin.document.getElementById("app"),w=ui.minimal?360:420,h=720;
-    if(ui.minimal)h=Math.ceil(a.getBoundingClientRect().height);
+    pipWin.document.documentElement.style.overflow=ui.minimal?"hidden":"";
+    if(ui.minimal)h=Math.ceil(a.getBoundingClientRect().height)+4;
     var dh=pipWin.outerHeight-pipWin.innerHeight,dw=pipWin.outerWidth-pipWin.innerWidth;
     h=Math.min(h+dh,screen.availHeight-60);w+=dw;
     if(Math.abs(pipWin.outerHeight-h)>2||Math.abs(pipWin.outerWidth-w)>2)pipWin.resizeTo(w,h);
+    if(ui.minimal)setTimeout(function(){
+      if(!pipWin)return;
+      var x=pipWin.document.documentElement.scrollHeight-pipWin.innerHeight;
+      if(x>0)try{pipWin.resizeBy(0,x+2)}catch(e){}
+    },80);
   }catch(e){}
 }
 function fitSoon(){if(pipWin)requestAnimationFrame(fitPip)}
@@ -751,8 +758,9 @@ function popToggle(){
     d.body.style.cssText="margin:0;padding:0";
     pipWin=w;app.classList.add("pip");d.body.appendChild(app);
     d.addEventListener("keydown",onKey);
+    if(w.ResizeObserver){pipRO=new w.ResizeObserver(fitSoon);pipRO.observe(app)}
     w.addEventListener("pagehide",function(){
-      pipWin=null;app.classList.remove("pip");
+      if(pipRO)pipRO.disconnect();pipRO=null;pipWin=null;app.classList.remove("pip");
       document.body.insertBefore(app,document.getElementById("ovl"));
       renderAll();
     });
