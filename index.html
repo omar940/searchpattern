@@ -496,6 +496,13 @@ $("next").onclick=next;$("prev").onclick=prev;$("nseq").onclick=nextSeq;$("pseq"
 $("matchform").onsubmit=function(e){e.preventDefault();runMatch()};
 $("voice").onclick=function(){ui.voice=!ui.voice;if(!ui.voice&&"speechSynthesis" in window)speechSynthesis.cancel();saveUi();renderAll()};
 $("pick").onclick=function(){ui.pk=!ui.pk;saveUi();renderAll()};
+var wheelT=0;
+document.getElementById("mini").addEventListener("wheel",function(e){
+  if(!ui.minimal||!e.deltaY)return;
+  e.preventDefault();
+  var n=Date.now();if(n-wheelT<250)return;wheelT=n;
+  if(e.deltaY>0)next();else prev();
+},{passive:false});
 $("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll()};
 function onKey(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return;
