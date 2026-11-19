@@ -50,6 +50,8 @@ button{cursor:pointer}
 .seqs .btn.reviewed{background:#b5cea8;color:#1e1e1e}
 .seqs{display:grid;grid-template-columns:1fr;gap:4px}
 .seqs .btn{text-align:left;padding:7px 10px}
+.seqs.two{grid-template-columns:1fr 1fr}
+.seqs.two .btn{font-size:12px;padding:6px 8px;line-height:1.25}
 .wrap{display:contents}
 [hidden]{display:none!important}
 .app.pk .pickable{display:none}
@@ -396,6 +398,7 @@ function renderStudies(){
 }
 function renderSeq(){
   var ch=curHdr();
+  $("seqs").classList.toggle("two",headers().length>4);
   $("seqs").innerHTML=headers().map(function(i){
     var cls=i===ch?" sel":(blockReviewed(i)?" reviewed":"");
     return '<button class="btn'+cls+'" data-i="'+i+'">'+esc(S.items[i].slice(2))+'</button>';
@@ -414,7 +417,7 @@ function renderList(){
   if(S.finished)out+='<li class="finish"><span class="mk">✓</span><span>Checklist complete</span></li>';
   L.innerHTML=out;
   var c=L.querySelector(".cur");
-  if(c){L.scrollTop=Math.max(0,c.offsetTop-L.offsetTop-L.clientHeight/3)}
+  if(c){L.scrollTop=Math.max(0,c.offsetTop-L.clientHeight/3)}
 }
 function renderMini(){
   if(!S.items.length){$("ms").textContent="";$("mv").textContent="";$("mi").textContent="Select a study";return}
