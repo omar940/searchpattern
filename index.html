@@ -280,7 +280,7 @@ function isHdr(s){return s.indexOf("> ")===0}
 function spoken(s){return isHdr(s)?s.slice(2):s}
 
 /* ---------- state ---------- */
-var ui={voice:true,minimal:false,voiceURI:"",rate:1.1};
+var ui={voice:true,minimal:false,voiceURI:"",rate:1.5};
 try{var u=JSON.parse(lsGet(LSUI)||"{}");if(typeof u.voice==="boolean")ui.voice=u.voice;if(typeof u.minimal==="boolean")ui.minimal=u.minimal;if(typeof u.pk==="boolean")ui.pk=u.pk;if(typeof u.voiceURI==="string")ui.voiceURI=u.voiceURI;if(typeof u.rate==="number"&&u.rate>=0.6&&u.rate<=2)ui.rate=u.rate}catch(e){}
 function saveUi(){lsSet(LSUI,JSON.stringify(ui))}
 var S={mod:"XR",cat:"Chest",study:null,items:[],idx:-1,visited:{},finished:false};
