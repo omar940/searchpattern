@@ -194,7 +194,7 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
       <h2>Settings</h2>
       <div class="tabs" id="etabs" role="tablist"></div>
     </header>
-    <div class="subnav"><div class="tabs" id="stabs" role="tablist"><button role="tab" data-v="voice">Voice</button><button role="tab" data-v="templates">Templates</button></div></div>
+    <div class="subnav"><div class="tabs" id="stabs" role="tablist"><button role="tab" data-v="templates">Templates</button><button role="tab" data-v="voice">Voice</button></div></div>
     <div class="pane" id="evoice" hidden>
       <div class="vs" id="vs">
         <h3 style="margin:0 0 4px;font-size:15px">Voice</h3>
@@ -728,7 +728,7 @@ function edOpen(){
   ED={draft:clone(T),mod:S.mod,name:S.study&&hasStudy(T,S.mod,S.study)?S.study:null,focus:-1,dirty:false};
   if(!ED.name){var f=firstStudy(ED.draft,ED.mod);ED.name=f}
   $("emsg").textContent="";
-  $("ovl").classList.add("open");setView("voice");edRender();
+  $("ovl").classList.add("open");setView("templates");edRender();
 }
 function firstStudy(t,m){for(var i=0;i<CATS.length;i++){var s=studies(t,m,CATS[i]);if(s.length)return s[0]}return null}
 function setView(v){
