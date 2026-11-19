@@ -48,7 +48,8 @@ button{cursor:pointer}
 .mods .btn.sel,.cats .btn.sel,.studies .btn.study-sel{background:var(--t);color:var(--tx);font-weight:600;box-shadow:none}
 .seqs .btn.sel{background:#4ec9b0;color:#1e1e1e}
 .seqs .btn.reviewed{background:#b5cea8;color:#1e1e1e}
-.seqs{display:grid;gap:4px}
+.seqs{display:grid;grid-template-columns:1fr;gap:4px}
+.seqs .btn{text-align:left;padding:7px 10px}
 .wrap{display:contents}
 [hidden]{display:none!important}
 .app.pk .pickable{display:none}
@@ -89,9 +90,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .app.min #matchmsg.dflt{display:none}
 .app.min .mini{display:flex;flex:1;justify-content:center}
 .app.pip.min{min-height:0;padding:8px;gap:6px}
-.app.min .foot{display:none}
-.app.min .dock{padding:2px 0 0;gap:4px}
-.app.min .nav2 .btn{padding:4px;font-size:11px}
+.app.min .foot,.app.min .dock{display:none}
 .app.min .top h1{font-size:13px}
 .app.min .chip{padding:3px 7px;font-size:11px}
 .app.min .match input{padding:4px 8px}
@@ -163,8 +162,6 @@ select,.field{background:var(--btn-off);border:1px solid var(--line);border-radi
   .app.min .mini{flex:1;justify-content:center}
   .studies{grid-template-columns:repeat(3,1fr)}
   .studies .btn{font-size:12px;padding:7px 4px}
-  .seqs{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:4px;padding-bottom:2px}
-  .seqs .btn{flex:none;white-space:nowrap}
   .match input{font-size:16px}
   #pop,.foot{display:none}
   .top{flex-wrap:wrap;row-gap:6px}
@@ -498,14 +495,17 @@ $("matchform").onsubmit=function(e){e.preventDefault();runMatch()};
 $("voice").onclick=function(){ui.voice=!ui.voice;if(!ui.voice&&"speechSynthesis" in window)speechSynthesis.cancel();saveUi();renderAll()};
 $("pick").onclick=function(){ui.pk=!ui.pk;saveUi();renderAll()};
 var wheelT=0;
-function wheelStep(e){
-  if(!e.deltaY)return;
+function wheelStep(e,view){
+  var d=view?(e.deltaX||e.deltaY):e.deltaY;
+  if(!d)return;
   e.preventDefault();
   var n=Date.now();if(n-wheelT<250)return;wheelT=n;
-  if(e.deltaY>0)next();else prev();
+  if(view){if(d>0)nextSeq();else prevSeq()}
+  else if(d>0)next();else prev();
 }
-document.getElementById("mini").addEventListener("wheel",function(e){if(ui.minimal)wheelStep(e)},{passive:false});
-document.getElementById("list").addEventListener("wheel",function(e){if(!ui.minimal&&e.target.closest&&e.target.closest("li > span:not(.mk)"))wheelStep(e)},{passive:false});
+document.getElementById("mini").addEventListener("wheel",function(e){if(ui.minimal&&!e.shiftKey)wheelStep(e)},{passive:false});
+document.getElementById("list").addEventListener("wheel",function(e){if(!ui.minimal&&!e.shiftKey&&e.target.closest&&e.target.closest("li > span:not(.mk)"))wheelStep(e)},{passive:false});
+document.getElementById("app").addEventListener("wheel",function(e){if(e.shiftKey)wheelStep(e,true)},{passive:false});
 $("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll()};
 function onKey(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return;
