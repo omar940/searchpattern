@@ -59,13 +59,13 @@ button{cursor:pointer}
 .vsb label{color:var(--mute);font-size:12px}
 .vsb select{min-width:0;width:100%}
 .vsb button{grid-column:2;justify-self:start}
-.app.pip{max-width:none;border:0;border-radius:0;min-height:100vh}
+.app.pip{max-width:none;border:0;border-radius:0;min-height:0}
 hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .match{display:flex;gap:6px}
 .match input{flex:1;min-width:0;background:var(--btn-off);border:1px solid var(--line);border-radius:4px;padding:7px 9px;font-size:13px}
 .match button{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:7px 12px;font-size:13px;font-weight:500}
-.list{list-style:none;margin:0;padding:0;flex:1 1 auto;min-height:140px;overflow-y:auto;position:relative}
-.list li{padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--text);display:flex;align-items:flex-start;gap:8px}
+.list{list-style:none;margin:0;padding:0;flex:1 1 auto;min-height:140px;overflow:visible;position:relative}
+.list li{scroll-margin-bottom:140px;padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--text);display:flex;align-items:flex-start;gap:8px}
 .list li>span:not(.mk){flex:0 1 auto;min-width:0;overflow-wrap:anywhere;white-space:normal}
 .list li:hover{background:var(--btn-off)}
 .list li .mk{width:1.1em;flex:none;color:var(--mute);font-family:var(--mono);font-size:13px}
@@ -413,7 +413,7 @@ function renderList(){
   if(S.finished)out+='<li class="finish"><span class="mk">✓</span><span>Checklist complete</span></li>';
   L.innerHTML=out;
   var c=L.querySelector(".cur");
-  if(c){L.scrollTop=Math.max(0,c.offsetTop-L.offsetTop-L.clientHeight/3)}
+  if(c&&c.scrollIntoView){try{c.scrollIntoView({block:"nearest"})}catch(e){}}
 }
 function renderMini(){
   if(!S.items.length){$("ms").textContent="";$("mv").textContent="";$("mi").textContent="Select a study";return}
@@ -435,7 +435,7 @@ function renderAll(){
   fitSoon();
 }
 function loadStudy(mod,name,quiet){
-  S.mod=mod;S.study=name;S.items=items(T,mod,name);S.visited={};S.finished=false;
+  pipHmax=0;S.mod=mod;S.study=name;S.items=items(T,mod,name);S.visited={};S.finished=false;
   S.cat=categoryOf(T,mod,name)||S.cat;
   var h=headers();
   if(S.items.length&&!quiet){S.idx=h.length?h[0]:0;S.visited[S.idx]=true;speak(spoken(S.items[S.idx]))}
@@ -504,7 +504,7 @@ function wheelStep(e,view){
   else if(d>0)next();else prev();
 }
 document.getElementById("mini").addEventListener("wheel",function(e){if(ui.minimal&&!e.shiftKey)wheelStep(e)},{passive:false});
-document.getElementById("list").addEventListener("wheel",function(e){if(!ui.minimal&&!e.shiftKey&&e.target.closest&&e.target.closest("li > span:not(.mk)"))wheelStep(e)},{passive:false});
+document.getElementById("list").addEventListener("wheel",function(e){if(!ui.minimal&&!e.shiftKey)wheelStep(e)},{passive:false});
 document.getElementById("app").addEventListener("wheel",function(e){if(e.shiftKey)wheelStep(e,true)},{passive:false});
 $("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll()};
 function onKey(e){
@@ -753,19 +753,22 @@ function setMsg(t){var m=$("matchmsg");m.textContent=t;m.classList.remove("dflt"
 function note(t){setMsg(t)}
 
 /* ---------- pop-out window ---------- */
+var pipHmax=0;
 function fitPip(){
   if(!pipWin)return;
   try{
-    var a=pipWin.document.getElementById("app"),w=ui.minimal?360:420,h=720;
+    var a=pipWin.document.getElementById("app"),w=ui.minimal?360:420;
     pipWin.document.documentElement.style.overflow=ui.minimal?"hidden":"";
-    if(ui.minimal)h=Math.ceil(a.getBoundingClientRect().height)+4;
+    var h=Math.ceil(a.getBoundingClientRect().height)+4;
+    if(ui.minimal)pipHmax=0;
+    else{h=Math.max(h,pipHmax);pipHmax=h}
     var dh=pipWin.outerHeight-pipWin.innerHeight,dw=pipWin.outerWidth-pipWin.innerWidth;
     h=Math.min(h+dh,screen.availHeight-60);w+=dw;
     if(Math.abs(pipWin.outerHeight-h)>2||Math.abs(pipWin.outerWidth-w)>2)pipWin.resizeTo(w,h);
-    if(ui.minimal)setTimeout(function(){
+    setTimeout(function(){
       if(!pipWin)return;
       var x=pipWin.document.documentElement.scrollHeight-pipWin.innerHeight;
-      if(x>0)try{pipWin.resizeBy(0,x+2)}catch(e){}
+      if(x>0)try{pipWin.resizeBy(0,Math.min(x+2,screen.availHeight-pipWin.outerHeight-40))}catch(e){}
     },80);
   }catch(e){}
 }
@@ -773,7 +776,7 @@ function fitSoon(){if(pipWin)requestAnimationFrame(fitPip)}
 function popToggle(){
   if(pipWin){pipWin.close();return}
   if(!("documentPictureInPicture" in window)){note("Pop-out needs Chrome or Edge 116 or newer.");return}
-  window.documentPictureInPicture.requestWindow({width:ui.minimal?360:420,height:ui.minimal?170:720}).then(function(w){
+  window.documentPictureInPicture.requestWindow({width:ui.minimal?360:420,height:ui.minimal?150:640}).then(function(w){
     var app=document.getElementById("app"),d=w.document;
     [].forEach.call(document.querySelectorAll("link[rel=stylesheet],style"),function(n){d.head.appendChild(n.cloneNode(true))});
     var th=document.documentElement.getAttribute("data-theme");if(th)d.documentElement.setAttribute("data-theme",th);
