@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search Pattern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one centered cue panel (like the desktop overlay), with a full-screen template editor on top. */
+:root{
+  --bg:#f3f4f6; --panel:#ffffff; --line:#d5d8de; --text:#1d2330; --mute:#6a7282;
+  --btn:#e8eaee; --btn-off:#f1f2f5; --btn-off-text:#a3a9b5;
+  --accent:#0e639c; --accent-text:#fff; --ok:#2e7d32; --ok-soft:#d7ecd9; --cur:#0a6fb3; --done:#8b92a0;
+  --danger:#b3261e;
+  --font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121212; --panel:#1e1e1e; --line:#3a3a3a; --text:#d6d6d6; --mute:#8a8a8a;
+    --btn:#333333; --btn-off:#262626; --btn-off-text:#5a5a5a;
+    --accent:#0e639c; --ok:#2e7d32; --ok-soft:#1b5e20; --cur:#4fc3f7; --done:#777; --danger:#ef7a73;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121212; --panel:#1e1e1e; --line:#3a3a3a; --text:#d6d6d6; --mute:#8a8a8a;
+  --btn:#333333; --btn-off:#262626; --btn-off-text:#5a5a5a;
+  --accent:#0e639c; --ok:#2e7d32; --ok-soft:#1b5e20; --cur:#4fc3f7; --done:#777; --danger:#ef7a73;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font:15px/1.4 var(--font);padding:16px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--cur);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;align-items:center;gap:6px}
+.top h1{font-size:15px;font-weight:600;margin:0;flex:1;letter-spacing:.2px}
+.chip{background:var(--btn);border:0;border-radius:4px;padding:5px 9px;font-size:12px;font-weight:500;color:var(--text)}
+.chip[aria-pressed="true"]{background:var(--ok);color:#fff}
+.sub{color:var(--mute);font-size:12px;margin:0}
+.row{display:grid;gap:6px}
+.mods{grid-template-columns:repeat(5,1fr)}
+.cats{grid-template-columns:repeat(4,1fr)}
+.studies{grid-template-columns:repeat(2,1fr)}
+.btn{background:var(--btn);border:0;border-radius:4px;padding:8px 6px;text-align:center;color:var(--text);font-size:13px;min-width:0;overflow-wrap:anywhere}
+.mods .btn{font-weight:600;font-size:14px}
+.btn.sel{background:var(--accent);color:#fff;font-weight:600}
+.btn.study-sel{background:var(--ok);color:#fff;font-weight:600}
+.btn.off{background:var(--btn-off);color:var(--btn-off-text)}
+.btn.reviewed{background:var(--ok-soft);color:var(--text)}
+.studies .btn{font-size:12.5px}
+.seqs{display:grid;gap:4px}
+.wrap{display:contents}
+.app.pip .editbtn{display:none}
+.app.pip{max-width:none;border:0;border-radius:0;min-height:100vh}
+hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
+.match{display:flex;gap:6px}
+.match input{flex:1;min-width:0;background:var(--btn-off);border:1px solid var(--line);border-radius:4px;padding:7px 9px;font-size:13px}
+.match button{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:7px 12px;font-size:13px;font-weight:500}
+.list{list-style:none;margin:0;padding:0;max-height:340px;min-height:140px;overflow-y:auto;position:relative}
+.list li{padding:5px 8px;border-radius:4px;cursor:pointer;color:var(--text);display:flex;gap:8px}
+.list li:hover{background:var(--btn-off)}
+.list li .mk{width:1.1em;flex:none;color:var(--mute);font-family:var(--mono);font-size:13px}
+.list li.done{color:var(--done)}
+.list li.cur{color:var(--cur);font-weight:600}
+.list li.cur .mk{color:var(--cur)}
+.list li.finish{color:var(--ok);font-weight:600;cursor:default}
+.list .empty{color:var(--mute);padding:10px 8px;cursor:default}
+.nav{display:grid;grid-template-columns:1fr 2fr;gap:6px}
+.nav2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.big{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:12px;font-size:15px;font-weight:600}
+.big.alt{background:var(--btn);color:var(--text);font-weight:500}
+.nav2 .btn{font-size:12px;color:var(--mute)}
+.mini{display:none;flex-direction:column;gap:2px;padding:4px 2px}
+.mini .ms{color:var(--mute);font-size:12px}
+.mini .mv{color:var(--ok);font-size:17px;font-weight:600}
+.mini .mi{color:var(--cur);font-size:24px;font-weight:600;line-height:1.25}
+.app.min .chrome{display:none}
+.app.min .mini{display:flex}
+.foot{color:var(--mute);font-size:11.5px;margin:0}
+kbd{font-family:var(--mono);font-size:11px;background:var(--btn);border-radius:3px;padding:1px 5px}
+/* editor */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:stretch;justify-content:center;z-index:20;padding:12px}
+.ovl.open{display:flex}
+.ed{background:var(--panel);border:1px solid var(--line);border-radius:10px;width:100%;max-width:980px;display:flex;flex-direction:column;overflow:hidden}
+.ed header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ed header h2{margin:0;font-size:15px;font-weight:600;flex:1;min-width:120px}
+.tabs{display:flex;gap:4px}
+.tabs button{background:var(--btn);border:0;border-radius:4px;padding:5px 11px;font-weight:600;font-size:13px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:#fff}
+.edbody{flex:1;min-height:0;display:grid;grid-template-columns:260px 1fr}
+.pane{overflow-y:auto;padding:12px 14px;min-height:0}
+.pane.left{border-right:1px solid var(--line)}
+.cat-h{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin:12px 0 4px}
+.cat-h:first-of-type{margin-top:0}
+.st{display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:4px;padding:5px 8px;font-size:13.5px}
+.st:hover{background:var(--btn-off)}
+.st[aria-current="true"]{background:var(--accent);color:#fff}
+.tools{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.tools button,.sm{background:var(--btn);border:0;border-radius:4px;padding:5px 9px;font-size:12px;font-weight:500}
+.sm.danger{color:var(--danger)}
+.sm:disabled{opacity:.4;cursor:default}
+.meta{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.meta h3{margin:0;font-size:15px;flex:1;min-width:140px}
+select,.field{background:var(--btn-off);border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-size:13px}
+.rows{display:flex;flex-direction:column;gap:3px}
+.er{display:flex;gap:4px;align-items:center}
+.er.drop{box-shadow:0 -2px 0 var(--cur)}
+.er .h{cursor:grab;color:var(--mute);padding:2px 5px;user-select:none;font-size:15px}
+.er input{flex:1;min-width:0;background:var(--btn-off);border:1px solid transparent;border-radius:4px;padding:4px 7px;font-size:13.5px}
+.er input:focus{border-color:var(--line)}
+.er.hdr input{color:var(--cur);font-weight:600}
+.er .sm{padding:3px 7px}
+.kw{margin-top:14px;display:flex;flex-direction:column;gap:4px}
+.kw label{font-size:12px;color:var(--mute)}
+.kw input{background:var(--btn-off);border:1px solid var(--line);border-radius:4px;padding:6px 8px;font-size:13px;font-family:var(--mono)}
+.ed footer{display:flex;gap:6px;padding:10px 14px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.ed footer .sp{flex:1}
+.pri{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:7px 16px;font-weight:600;font-size:13px}
+.msg{color:var(--ok);font-size:12px}
+.dlg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
+.dlg.open{display:flex}
+.dlg .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:10px}
+.dlg h4{margin:0;font-size:15px}
+.dlg p{margin:0;color:var(--mute);font-size:13px}
+.dlg textarea{min-height:200px;font-family:var(--mono);font-size:11.5px;background:var(--btn-off);border:1px solid var(--line);border-radius:4px;padding:8px;resize:vertical}
+.dlg.wide .box{max-width:640px}
+.dlg .acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+@media (max-width:700px){
+  body{padding:8px}
+  .edbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .pane.left{border-right:0;border-bottom:1px solid var(--line);max-height:30vh}
+  .ovl{padding:0}.ed{border-radius:0}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="app" id="app">
+  <div class="top">
+    <h1>Search Pattern</h1>
+    <button class="chip" id="voice" aria-pressed="true" title="Read each item aloud">Voice</button>
+    <button class="chip" id="pop" title="Pop out into a small always-on-top window">Pop out</button>
+    <button class="chip" id="minbtn" title="Show only the current item">Minimal</button>
+    <button class="chip editbtn" id="edit" title="Edit templates">Edit</button>
+  </div>
+  <div class="chrome wrap">
+    <form class="match" id="matchform">
+      <input id="match" type="text" placeholder="Paste a study name to match, e.g. CT ABDOMEN PELVIS W CONTRAST" aria-label="Study name to match" autocomplete="off">
+      <button type="submit">Match</button>
+    </form>
+    <p class="sub" id="matchmsg">Or pick a modality and study below.</p>
+    <div class="row mods" id="mods"></div>
+    <div class="row cats" id="cats"></div>
+    <div class="row studies" id="studies"></div>
+    <hr>
+    <div class="seqs" id="seqs"></div>
+  </div>
+  <div class="mini" id="mini" aria-live="polite">
+    <div class="ms" id="ms"></div><div class="mv" id="mv"></div><div class="mi" id="mi"></div>
+  </div>
+  <ul class="list chrome" id="list" aria-live="polite"></ul>
+  <div class="nav">
+    <button class="big alt" id="prev">Back</button>
+    <button class="big" id="next">Next</button>
+  </div>
+  <div class="nav2 chrome">
+    <button class="btn" id="pseq">Previous view</button>
+    <button class="btn" id="nseq">Next view</button>
+  </div>
+  <p class="foot"><kbd>Space</kbd> or <kbd>→</kbd> next &nbsp; <kbd>←</kbd> back &nbsp; <kbd>↓</kbd> next view &nbsp; <kbd>↑</kbd> previous view</p>
+</main>
+
+<div class="ovl" id="ovl" role="dialog" aria-modal="true" aria-label="Edit templates">
+  <div class="ed">
+    <header>
+      <h2>Edit templates</h2>
+      <div class="tabs" id="etabs" role="tablist"></div>
+    </header>
+    <div class="edbody">
+      <div class="pane left" id="eleft"></div>
+      <div class="pane" id="eright"></div>
+    </div>
+    <footer>
+      <button class="sm" id="exp">Export</button>
+      <button class="sm" id="imp">Import</button>
+      <button class="sm danger" id="reset">Reset to defaults</button>
+      <span class="sp"></span>
+      <span class="msg" id="emsg"></span>
+      <button class="sm" id="ecancel">Cancel</button>
+      <button class="pri" id="esave">Save</button>
+    </footer>
+  </div>
+</div>
+
+<div class="dlg" id="dlg"><div class="box" id="dbox"></div></div>
+
+<script>
+window.DEFAULT_TEMPLATES = {
+"checklists": {
+"CT": {
+"CTA PE": ["Scout","Lines and tubes","Main pulmonary artery","Right pulmonary artery","Right upper lobe arteries","Right middle lobe arteries","Right lower lobe arteries","Left pulmonary artery","Left upper lobe arteries","Lingular arteries","Left lower lobe arteries","Right ventricle","Interventricular septum","Inferior vena cava and hepatic veins","Trachea and central airways","Right lung","Left lung","Pleura","Thoracic aorta","Mediastinum and hila","Thyroid and lower neck","Chest wall","Thoracic spine","Ribs","Sternum","Liver","Spleen","Adrenal glands","Upper kidneys"],
+"Chest/Abd/Pelvis": ["Scout","Lines and tubes","Thyroid and lower neck","Airways","Esophagus","Mediastinum and hila","Thoracic aorta","Pulmonary arteries","Heart and pericardium","Right lung","Left lung","Pleura","Axillae","Chest wall and breasts","Liver","Gallbladder and bile ducts","Pancreas","Spleen","Adrenal glands","Kidneys","Ureters","Bladder","Uterus and ovaries","Prostate and seminal vesicles","Stomach and duodenum","Small bowel","Appendix","Colon and rectum","Mesentery and peritoneum","Abdominal aorta and branches","Inferior vena cava","Portal and mesenteric veins","Retroperitoneal lymph nodes","Pelvic lymph nodes","Inguinal regions","Abdominal wall","Ribs and sternum","Spine","Pelvic bones and hips"],
+"Abd/Pelvis": ["Scout","Lines and tubes","Lung bases","Heart and pericardium","Distal esophagus","Stomach and duodenum","Liver","Gallbladder and bile ducts","Pancreas","Spleen","Adrenal glands","Kidneys","Ureters","Bladder","Uterus and ovaries","Prostate and seminal vesicles","Rectum and colon","Appendix","Small bowel","Mesentery and peritoneum","Abdominal aorta and branches","Inferior vena cava","Portal and mesenteric veins","Retroperitoneal lymph nodes","Pelvic lymph nodes","Inguinal regions","Abdominal wall","Ribs","Pelvic bones and hips","Lumbar spine","Spinal canal"],
+"CTA Abd/Pelvis": ["Scout","Lines and tubes","Lung bases","Heart and pericardium","Distal esophagus","Abdominal aorta","Celiac artery","Hepatic arteries","Splenic artery","Superior mesenteric artery","Inferior mesenteric artery","Right renal artery","Left renal artery","Accessory renal arteries","Common iliac arteries","Internal iliac arteries","External iliac arteries","Common femoral arteries","Inferior vena cava","Renal veins","Portal and mesenteric veins","Hepatic veins","Iliac veins","Liver","Gallbladder and bile ducts","Pancreas","Spleen","Adrenal glands","Kidneys","Ureters","Bladder","Uterus and ovaries","Prostate and seminal vesicles","Stomach and duodenum","Small bowel","Appendix","Colon and rectum","Mesentery and peritoneum","Retroperitoneal lymph nodes","Pelvic lymph nodes","Inguinal regions","Abdominal wall","Lumbar spine","Pelvic bones and hips"],
+"Head": ["Scout","Lines and tubes","Scalp","Calvarium","Extra-axial spaces","Sulci","Cerebral cortex and gray-white junction","Basal ganglia","Internal capsules","Thalami","Ventricles","Basal cisterns","Brainstem","Cerebellum","Intracranial vessels","Dural venous sinuses","Pituitary and sella","Orbits","Paranasal sinuses","Skull base","Mastoids and middle ears","Upper cervical spine"],
+"Temporal Bones": ["Lines and tubes","External auditory canal","Temporomandibular joint","Tympanic membrane","Scutum","Middle ear cavity","Malleus","Incus","Stapes","Oval and round windows","Tegmen tympani","Mastoid air cells","Facial nerve canal","Cochlea","Vestibule","Semicircular canals","Vestibular aqueduct","Internal auditory canal","Petrous apex","Carotid canal","Sigmoid sinus and jugular bulb","Temporal lobes","Cerebellum"],
+"Neck": ["Scout","Lines and tubes","Visualized cerebellum and brainstem","Orbits","Paranasal sinuses","Skull base","Nasopharynx","Parapharyngeal space","Masticator space","Retropharyngeal space","Parotid glands","Oropharynx","Oral cavity","Mandible and dentition","Submandibular glands","Carotid space","Carotid arteries and jugular veins","Cervical lymph nodes","Hypopharynx","Larynx","Airway","Thyroid gland","Cervical spine","Lung apices","Upper mediastinum"],
+"C-Spine": ["Scout","Lines and tubes","Alignment","Skull base","Occipital condyles","Craniocervical junction","C1 ring","Dens","Vertebral bodies","Intervertebral discs","Pedicles and lamina","Facet joints","Spinous processes","Transverse foramina","Spinal canal","Neural foramina","Prevertebral soft tissues","Paraspinal soft tissues","Thyroid","Lung apices","Upper ribs and clavicles"],
+"T-Spine": ["Scout","Lines and tubes","Alignment","Vertebral bodies","Intervertebral discs","Pedicles","Posterior elements","Spinal canal","Neural foramina","Costovertebral joints","Ribs","Sternum","Paraspinal soft tissues","Mediastinum and aorta","Lungs","Liver and spleen","Kidneys"],
+"L-Spine": ["Scout","Lines and tubes","Alignment","Lumbosacral junction and vertebral numbering","Vertebral bodies","Intervertebral discs","Pedicles and pars interarticularis","Posterior elements","Facet joints","Spinal canal","Neural foramina","Sacrum and sacroiliac joints","Paraspinal soft tissues","Kidneys","Retroperitoneum","Abdominal aorta"],
+"CTA Head/Neck": ["Lines and tubes","Aortic arch","Great vessel origins","Right common carotid artery","Right carotid bifurcation","Right cervical internal carotid artery","Left common carotid artery","Left carotid bifurcation","Left cervical internal carotid artery","Right vertebral artery","Left vertebral artery","Basilar artery","Intracranial internal carotid arteries","Anterior cerebral arteries","Anterior communicating artery","Middle cerebral arteries","Posterior communicating arteries","Posterior cerebral arteries","Superior cerebellar arteries","Posterior inferior cerebellar arteries","Dural venous sinuses","Extra-axial spaces","Cerebral cortex and gray-white junction","Basal ganglia","Thalami","Brainstem","Cerebellum","Pharynx and larynx","Salivary glands","Cervical lymph nodes","Thyroid","Lung apices","Cervical spine"],
+"Orbits": ["Lines and tubes","Globe and lens","Optic nerve-sheath complex","Intraconal and extraconal fat","Extraocular muscles","Lacrimal gland","Orbital apex and optic canal","Orbital osseous structures","Paranasal sinuses","Facial bones","Frontal lobes"],
+"Sella": ["Lines and tubes","Sella turcica","Pituitary gland","Parasellar structures","Sphenoid sinus","Clivus"],
+"Extremity": ["Bones and cortical/marrow density","Joint spaces","Soft tissues","Vasculature"],
+"Chest w/ Contrast": ["Scout","Lines and tubes","Thyroid and lower neck","Esophagus","Mediastinum","Thymus","Hila","Mediastinal and hilar lymph nodes","Superior vena cava","Inferior vena cava","Right atrium","Right ventricle","Pulmonary arteries","Pulmonary veins","Left atrium","Left ventricle","Coronary arteries","Pericardium","Thoracic aorta","Carotid and subclavian arteries","Trachea and central airways","Right lung","Left lung","Pleura","Axillary lymph nodes","Chest wall and breasts","Sternum and clavicles","Ribs","Scapulae","Thoracic spine","Liver","Spleen","Adrenal glands","Upper kidneys"],
+"Chest w/o Contrast": ["Scout","Lines and tubes","Thyroid and lower neck","Esophagus","Mediastinum","Thymus","Hila","Mediastinal and hilar lymph nodes","Thoracic aorta","Pulmonary arteries","Heart and pericardium","Trachea and central airways","Right lung","Left lung","Pleura","Axillary lymph nodes","Chest wall and breasts","Sternum and clavicles","Ribs","Scapulae","Thoracic spine","Liver","Spleen","Adrenal glands","Upper kidneys"]
+},
+"MR": {
+"Chest": ["> Localizers","Lines and tubes","Lower neck","Lungs","Liver","Spleen","> Axial T2","Mediastinum","Hila","Heart and pericardium","Pleura","Chest wall","Axillae","> In- and opposed-phase T1","Thymus","> DWI","Mediastinal and hilar lymph nodes","Pleura","> Coronal STIR","Brachial plexus","Bone marrow","> Sagittal T2","Spinal canal","> Post-contrast T1","Great vessels","Mediastinum","Pleura","Chest wall"],
+"Abdomen": ["> Coronal T2 single-shot","Lines and tubes","Lung bases","Stomach and bowel","Mesentery and peritoneum","Abdominal wall","> Axial fat-sat T2","Liver","Gallbladder","Pancreas","Spleen","Kidneys","> MRCP","Bile ducts","Pancreatic duct","> In- and opposed-phase T1","Liver","Adrenal glands","Bone marrow","> DWI","Liver","Spleen","Lymph nodes","Bone marrow","> Pre-contrast fat-sat T1","Pancreas","> Dynamic post-contrast T1","Liver","Hepatic vasculature","Pancreas","Kidneys","Abdominal aorta and inferior vena cava","Mesentery and peritoneum"],
+"Pelvis": ["> Sagittal T2","Lines and tubes","Bladder","Urethra","Uterus and cervix","Rectum and sigmoid colon","Pelvic floor","> Axial T2","Small bowel loops","Ovaries and adnexa","Prostate and seminal vesicles","Pelvic musculature","Inguinal regions","> Coronal T2 large field","Lower kidneys and ureters","Lower abdominal bowel","> Axial T1","Pelvic lymph nodes","Bone marrow","Hips and sacroiliac joints","> DWI","Bladder","Pelvic lymph nodes","Bone marrow","> Post-contrast T1","Uterus and cervix","Ovaries and adnexa","Bladder wall","Iliac vessels"],
+"Appendix": ["> Localizers","Lines and tubes","Lung bases","> Coronal T2 HASTE","Liver","Spleen","Kidneys","Bowel","Appendix","Bladder","Uterus and ovaries","Free fluid","Pelvic bones and hips","> Axial T2 HASTE","Appendix","Periappendiceal fat and fluid","Liver","Gallbladder","Pancreas","Spleen","Adrenal glands","Kidneys","Bowel","Lymph nodes","Bladder","Uterus and ovaries","Free fluid","Abdominal wall","> Sagittal T2 HASTE","Appendix","Pelvis","Spine","> DWI","Appendix","Lymph nodes","Bone marrow"],
+"Enterography": ["> Coronal T2 single-shot","Lines and tubes","Stomach and duodenum","Jejunum","Ileum","Terminal ileum","Ileocecal valve","Appendix","Colon","> Axial T2 single-shot","Liver","Pancreas","Spleen","Kidneys","Rectum","> Coronal fat-sat T2","Mesentery","Bile ducts","Bone marrow and sacroiliac joints","> Cine","Small bowel","> DWI","Terminal ileum","Colon","Mesenteric lymph nodes","> Enteric phase post-contrast T1","Jejunum","Ileum","Terminal ileum","Colon","Mesenteric vessels","> Small field fat-sat T2","Perianal region"],
+"Urogram": ["> Localizers","Lines and tubes","Liver","Spleen","Pancreas","Spine","> Coronal and axial T2","Adrenal glands","Right kidney","Left kidney","Bladder","Uterus and ovaries","Prostate","Urethra","> 3D T2 urogram","Renal collecting systems","Ureteropelvic junctions","Ureters","Ureterovesical junctions","> Nephrographic phase","Right kidney","Left kidney","> Excretory phase","Renal collecting systems","Ureters","Ureterovesical junctions"],
+"Brain": ["> Diffusion","Extra-axial spaces","Frontal lobes","Parietal lobes","Temporal lobes","Occipital lobes","Basal ganglia","Thalami","Brainstem","Cerebellum","Bone marrow","> Sagittal T1","Lines and tubes","Pituitary","Corpus callosum","Pineal region","Cerebellar tonsils","Craniocervical junction","Upper cervical cord","Calvarium and bone marrow","Oral cavity and tongue","Nasopharynx and oropharynx","Skull base and clivus","Mandible, maxilla, and dentition","Visualized neck soft tissues","> Axial T2","Ventricles","Dural venous sinuses","Intracranial arterial flow voids","Brainstem","Cerebellum","Mastoids and middle ears","Internal auditory canals","Meckel caves","Orbits","Paranasal sinuses","Nasal septum and turbinates","> SWI","Cortex and gray-white junctions","Deep white matter","Basal ganglia","Thalami","Brainstem","Cerebellum","> Axial FLAIR","Scalp and extracranial soft tissues","Extra-axial spaces","Sulci and cisterns","Cerebral cortex","White matter","Basal ganglia","Thalami","> Coronal T2","Hippocampi","Temporal lobes","> Post-contrast T1","Cerebral cortex","White matter","Basal ganglia and thalami","Brainstem","Cerebellum","Dura","Leptomeninges","Dural venous sinuses","Cavernous sinuses","Skull base"],
+"Brain Seizure": ["> Coronal high-resolution T2","Lines and tubes","Right hippocampus","Left hippocampus","Fornices","Mammillary bodies","> Coronal FLAIR","Hippocampi","Amygdalae","Temporal lobes","> 3D T1","Cerebral cortex","Gray-white junction","Subependymal region","> Axial FLAIR","Cerebral cortex","Periventricular white matter","Basal ganglia and thalami","> SWI","Cerebral cortex","Deep white matter","Intracranial vessels","> Axial T2","Calvarium","Ventricles","Cerebellum"],
+"Orbits": ["> Axial T2","Lines and tubes","Globes","Optic nerve-sheath complex","Paranasal sinuses","Frontal lobes","Pituitary and sella","> Coronal T1","Levator palpebrae","Four rectus muscles","Superior oblique","Inferior oblique","Intraconal fat","Extraconal fat","Orbital osseous structures","> Coronal fat-sat T2","Periorbital soft tissues","Optic nerves","Optic chiasm and optic tracts","> Coronal fat-sat post-contrast T1","Palpebral soft tissues","Lacrimal glands","Superior and inferior ophthalmic veins","Optic nerve sheaths","Orbital apex","Optic canal and orbital fissures","Cavernous sinus and Meckel caves"],
+"IAC": ["> Axial 3D heavily T2","Lines and tubes","Cerebellopontine angles","Anterior inferior cerebellar arteries","Right internal auditory canal","Left internal auditory canal","Cochleae","Vestibules","Semicircular canals","Endolymphatic sacs","Trigeminal nerves","> Oblique sagittal 3D T2","Facial nerves","Cochlear nerves","Superior and inferior vestibular nerves","> Pre-contrast T1","Membranous labyrinth","Petrous apices","> Post-contrast T1","Internal auditory canals","Facial nerves","Membranous labyrinth","> Whole brain axial T2 and FLAIR","Middle ears and mastoids","Cerebellum","Brainstem","Extra-axial spaces","Cerebral cortex","White matter","Basal ganglia and thalami","> DWI","Cerebral hemispheres","Brainstem","Cerebellum"],
+"Sella": ["> Sagittal pre-contrast T1","Lines and tubes","Posterior pituitary bright spot","Sella turcica","Clivus","Hypothalamus","Third ventricle","> Coronal T2","Sphenoid sinus","Anterior pituitary","Internal carotid arteries","Suprasellar cistern","Optic chiasm","Optic nerves and tracts","> Dynamic coronal post-contrast T1","Anterior pituitary","> Coronal and sagittal post-contrast T1","Infundibulum","Cavernous sinuses","> Axial FLAIR","Mesial temporal lobes","Frontal lobes","White matter","Brainstem"],
+"Neck": ["> Axial T1","Lines and tubes","Parotid glands","Parapharyngeal space","Retropharyngeal space","Masticator space","Carotid space","Oral cavity","Larynx","Bone marrow","> Axial T2","Temporal lobes","Cerebellum","Brainstem","Orbits","Paranasal sinuses","Nasopharynx","Oropharynx","Submandibular glands","Hypopharynx","Carotid arteries and jugular veins","Thyroid gland","Lung apices","> DWI","Cervical lymph nodes","> Fat-sat post-contrast T1","Cranial nerves and skull base foramina","Nasopharynx","Oropharynx","Oral cavity","Cervical lymph nodes"],
+"C-Spine": ["> Localizers","Lines and tubes","Pharynx and larynx","Neck lymph nodes","Lung apices","> Sagittal T1","Craniocervical junction","Cerebellar tonsils","Vertebral body marrow","> Sagittal T2","Alignment","Posterior fossa","Spinal cord","Intervertebral discs","> Sagittal STIR","Prevertebral soft tissues","Vertebral body marrow","Ligaments","Posterior elements","Paraspinal muscles","> Axial T2","Thecal sac","Facet joints","Vertebral arteries","Thyroid","Cervical lymph nodes"],
+"T-Spine": ["> Localizers","Lines and tubes","Vertebral numbering","Lungs and pleura","Liver and spleen","Kidneys","> Sagittal T1","Vertebral body marrow","Neural foramina","> Sagittal T2","Alignment","Intervertebral discs","Spinal cord","Conus medullaris","> Sagittal STIR","Vertebral body marrow","Posterior elements","Paraspinal soft tissues","> Axial T2","Mediastinum","Spinal canal","Spinal cord","Costovertebral joints"],
+"L-Spine": ["> Localizers","Lines and tubes","Vertebral numbering","Kidneys","Retroperitoneum and aorta","> Sagittal T1","Vertebral body marrow","Neural foramina","> Sagittal T2","Alignment","Intervertebral discs","Conus medullaris","Bladder","Uterus and ovaries","Presacral space","> Sagittal STIR","Vertebral body marrow","Posterior elements","Sacrum and sacroiliac joints","> Axial T2","Cauda equina","T12-L1","L1-2","L2-3","L3-4","L4-5","L5-S1","Facet joints","Paraspinal muscles"],
+"Total Spine": ["> Localizers","Lines and tubes","Coronal alignment","Neck soft tissues and lymph nodes","Lungs and mediastinum","Liver","Spleen","Kidneys","Retroperitoneum and aorta","Pelvis and sacroiliac joints","> Sagittal T1","Skull base","Vertebral body marrow","Neural foramina","> Sagittal T2","Alignment","Posterior fossa","Spinal cord","Conus medullaris","Intervertebral discs","> Sagittal STIR","Sternum and clavicles","Vertebral body marrow","Ligaments","Posterior elements","Paraspinal soft tissues","Ribs","Scapulae","> Axial T2","Spinal canal","Cauda equina","Facet joints"],
+"Shoulder": ["> Axial PD fat-sat","Bicipital groove","Long head biceps tendon","Subscapularis tendon","Rotator interval","Anterior labrum","Glenoid cartilage","Posterior labrum","Inferior labrum","Glenohumeral ligaments","Teres minor","Spinoglenoid notch","Soft tissues","> Coronal oblique T2 fat-sat","Acromioclavicular joint","Subacromial-subdeltoid bursa","Supraspinatus tendon","Infraspinatus tendon","Superior labrum and biceps anchor","Humeral head cartilage","Axillary recess","Suprascapular notch","> Coronal PD","Proximal humeral physis","Bone marrow","> Sagittal T1","Acromion","Deltoid","Rotator cuff muscles","Quadrilateral space"],
+"Elbow": ["> Coronal PD fat-sat","Common extensor tendon","Radial collateral ligament","Lateral ulnar collateral ligament","Capitellum","Trochlea","Ulnar collateral ligament","Common flexor tendon","> Sagittal T2 fat-sat","Distal biceps tendon","Brachialis","Coronoid","Radial head","Articular cartilage","Joint recesses","Olecranon","Triceps tendon","Olecranon bursa","> Axial T2 fat-sat","Annular ligament","Distal biceps insertion","Radial nerve","Median nerve","Ulnar nerve","Soft tissues","> Coronal T1","Bone marrow"],
+"Wrist": ["> Coronal T1","Distal radius and ulna","Scaphoid","Lunate","Triquetrum and pisiform","Hamate and capitate","Trapezoid and trapezium","Metacarpal bases","> Coronal PD fat-sat","Triangular fibrocartilage complex","Central disc","Meniscal homolog","Lunotriquetral ligament","Scapholunate ligament","Extrinsic ligaments","Articular cartilage","Bone marrow","> Axial PD fat-sat","Distal radioulnar joint","Extensor compartments one through six","Guyon canal and ulnar nerve","Carpal tunnel and median nerve","Flexor tendons","Soft tissues","> Sagittal PD fat-sat","Radiocarpal and midcarpal alignment"],
+"Finger": ["> Axial PD fat-sat","Flexor tendons and pulleys","Extensor tendons","Neurovascular bundles","Nail and nail bed","Skin and subcutaneous tissues","Soft tissue mass or collection","> Coronal PD fat-sat","Radial and ulnar collateral ligaments","Interphalangeal joints","Metacarpophalangeal joint","Articular cartilage","Joint effusion and synovium","Physes and epiphyses","Bone marrow edema","> Coronal PD","Bone marrow","Cortex","Alignment","Metacarpal and phalangeal marrow","> Sagittal T2 fat-sat","Volar plate","Central slip","Terminal extensor tendon","Flexor digitorum profundus insertion","Dorsal capsule","Flexor tendon sheath","> Post-contrast T1","Synovial enhancement","Abscess or sinus tract","Enhancing soft tissue mass"],
+"Hip/Pelvis": ["> Coronal T1","Sacrum","Pelvic bones","Femoral heads","Bone marrow","> Coronal STIR","Sacroiliac joints","Femoral heads","Gluteus medius and minimus tendons","Greater trochanteric bursa","Pubic symphysis and adductor origins","Hamstring origins","> Axial T2 fat-sat","Bladder","Uterus and ovaries","Prostate","Iliopsoas tendon","Rectus femoris origin","Hip joint capsule","Sciatic nerve","> Sagittal PD fat-sat","Acetabular labrum","Articular cartilage","> Axial oblique PD fat-sat","Femoral head-neck junction","Acetabular labrum","Ligamentum teres"],
+"Knee": ["> Sagittal PD","Medial meniscus","Lateral meniscus","Posterior cruciate ligament","Anterior cruciate ligament","Patellar tendon","Quadriceps tendon","> Sagittal T2 fat-sat","Suprapatellar recess","Synovium","Hoffa fat pad","Articular cartilage","Bone marrow","> Coronal PD fat-sat","Meniscal roots","Medial and lateral compartment cartilage","> Coronal T1","Bone marrow","> Axial T2 fat-sat","Medial and lateral patellar retinacula","Patellofemoral cartilage","Medial collateral ligament","Iliotibial band","Fibular collateral ligament","Popliteus tendon","Posterolateral corner","Popliteal fossa","Neurovascular bundle","Muscles"],
+"Ankle": ["> Axial T2 fat-sat","Anterior tibial tendon","Extensor hallucis longus","Extensor digitorum longus","Peroneus brevis","Peroneus longus","Posterior tibial tendon","Flexor digitorum longus","Flexor hallucis longus","Tarsal tunnel","Syndesmotic ligaments","Anterior talofibular ligament","Posterior talofibular ligament","> Coronal PD fat-sat","Deltoid ligament (superficial and deep)","Spring ligament","Tibial plafond","Talar dome","Calcaneofibular ligament","> Sagittal T1","Sinus tarsi","Bone marrow","> Sagittal STIR","Subtalar and calcaneonavicular joints","Midfoot joints","Achilles tendon","Plantar fascia","Bone marrow"],
+"Infection": ["> T1 without fat-sat","Lines and tubes","Bone marrow","Cortex","Skin","Subcutaneous fat","> Fat-sat T2 or STIR","Bone marrow","Subcutaneous tissues","Fascia","Muscles","Joints","Tendon sheaths","> Fat-sat post-contrast T1","Sinus tracts","Subcutaneous tissues","Muscles","Joints","Periosteum","> Axial T2","Neurovascular structures"],
+"Foot": ["> Axial PD fat-sat","Extensor tendons","Flexor tendons","Intrinsic foot muscles","Midfoot and tarsometatarsal joints","Metatarsal shafts","Intermetatarsal spaces","Neurovascular bundle","Dorsal and plantar soft tissues","> Coronal PD","Bone marrow","Tarsometatarsal alignment","Lisfranc ligament","Cuneiforms and cuboid","Metatarsal bases","Subcutaneous fat","> Coronal PD fat-sat","Metatarsal heads","Metatarsophalangeal joints","Plantar plates","Sesamoids","Collateral ligaments","Intermetatarsal bursae","Muscles","> Sagittal T2 FS","Bone marrow edema","Plantar fascia","Plantar fat pad","Sinus tarsi","Flexor and extensor tendon sheaths","> Sagittal T1","Calcaneus, talus, and navicular marrow","Longitudinal arch alignment","Subtalar and midfoot joints","Articular cartilage"],
+"Fetal Brain": ["> Localizers","Gestational age","Number of fetuses","Fetal lie and presentation","Amniotic fluid volume","Placenta","Cervix and lower uterine segment","> Axial T2 single-shot","Head size and shape","Calvarium and scalp","Cavum septi pellucidi","Lateral ventricles (atrial diameter)","Third ventricle","Germinal matrix and periventricular zones","Cortical sulcation for gestational age","Gray-white matter differentiation","Basal ganglia and thalami","Cerebellar hemispheres","Transverse cerebellar diameter","Extra-axial spaces","> Sagittal T2 single-shot","Corpus callosum","Cerebellar vermis","Brainstem","Fourth ventricle","Cisterna magna and tentorium","Craniocervical junction","Face and profile","> Coronal T2 single-shot","Ventricular symmetry","Fornices and septum","Hippocampi and temporal lobes","Sylvian fissures and opercularization","Interhemispheric fissure","Cerebellar hemispheres and vermis","Orbits and lenses","> T1","Intrinsic T1 signal (hemorrhage or mineralization)","Germinal matrix","> DWI and ADC","Restricted diffusion","Cortex and white matter","Cerebellum and brainstem","> SWI or T2* gradient echo","Hemorrhage","Mineralization","Ventricular walls","> Visualized fetal anatomy","Face, palate, and orbits","Neck","Spine and sacrum","Thorax","Abdomen"],
+"Fetal Body": ["> Localizers","Gestational age","Number of fetuses","Fetal lie and presentation","Amniotic fluid volume","Placenta","Umbilical cord (vessels and insertion)","Cervix and lower uterine segment","Maternal uterus and adnexa","> Coronal T2 single-shot","Right lung","Left lung","Lung signal for gestational age","Diaphragm","Heart position and axis","Liver position","Stomach position and size","Small bowel and colon","Kidneys","Adrenal glands","Bladder","Limbs","> Axial T2 single-shot","Trachea and bronchi","Lungs","Thymus and mediastinum","Esophagus and stomach","Liver and gallbladder","Kidneys and renal pelves","Ureters","Bladder and urachus","Abdominal wall and cord insertion","Genitalia","Anus and rectum","> Sagittal T2 single-shot","Spine alignment and canal","Conus medullaris level","Sacrum and coccyx","Overlying skin and back","Diaphragm","Neck and face profile","Sacrococcygeal region","> Steady-state free precession","Heart and great vessels","Umbilical cord","Fetal motion","> T1","Meconium in the colon","Liver signal","Hemorrhage","> Volumetry (if requested)","Observed to expected total fetal lung volume","Liver herniation","Mass volume"]
+},
+"XR": {
+"Chest": ["> PA or AP view","Lines and tubes","Trachea","Lung volumes","Right lung","Left lung","Lung apices","Pleura","Costophrenic angles","Mediastinum","Aortic knob","Heart","Hila","Hemidiaphragms","Upper abdomen","Ribs","Clavicles","Shoulders","Neck and chest wall soft tissues","> Lateral view","Retrosternal space","Sternum","Hila","Retrocardiac space","Posterior costophrenic angles","Upper abdomen","Thoracic spine"],
+"Neonatal Chest": ["> AP view","Endotracheal tube","Enteric tube","Umbilical venous catheter","Umbilical arterial catheter","Other lines","Thymus and mediastinum","Heart","Right lung","Left lung","Pleural spaces","Diaphragm","Subdiaphragmatic spaces","Upper abdominal bowel gas","Ribs","Clavicles and humeri","Spine","Soft tissues"],
+"Abdomen": ["> Supine view","Lines and tubes","Lung bases","Liver","Stomach","Spleen","Kidneys and psoas margins","Bowel","Rectum","Pelvis","Hernia regions","Lumbar spine","Pelvic bones and hips","> Upright or decubitus view","Subdiaphragmatic spaces","Bowel air-fluid levels","Lung bases"],
+"Neonatal Abdomen": ["> Supine view","Enteric tube","Umbilical catheters","Lung bases","Liver and portal veins","Stomach","Small bowel","Bowel walls","Colon","Rectum","Flanks","Spine and sacrum","Pelvis and hips","> Cross-table lateral or decubitus view","Nondependent peritoneal space"],
+"Skull": ["> Frontal view","Calvarium","Sutures","Orbits","Paranasal sinuses","Mandible","> Lateral view","Scalp soft tissues","Shunt tubing","Calvarium","Sella","Skull base","Facial bones","Upper cervical spine"],
+"C-Spine": ["> Lateral view","Skull base","Predental space","Dens","Anterior vertebral line","Posterior vertebral line","Spinolaminar line","Vertebral bodies","Disc spaces","Facet joints","Spinous processes","Prevertebral soft tissues","Cervicothoracic junction","> Frontal view","Spinous process alignment","Uncovertebral joints","Lung apices","Upper ribs","> Open-mouth odontoid view","Dens","Lateral masses of C1","C1-2 joints","> Oblique views","Neural foramina"],
+"T-Spine": ["> Frontal view","Vertebral bodies","Pedicles","Costovertebral junctions","Ribs","Paraspinal lines","Mediastinum","Lungs","> Lateral view","Alignment","Vertebral body heights","Disc spaces","Posterior elements"],
+"L-Spine": ["> Frontal view","Vertebral bodies","Pedicles","Transverse processes","Psoas margins","Kidneys and ureteral regions","Bowel gas","Sacroiliac joints","> Lateral view","Alignment","Abdominal aorta","Vertebral body heights","Disc spaces","Pars interarticularis","Spinous processes","Sacrum"],
+"Scoliosis": ["> Frontal view","Thoracic curve","Lumbar curve","Vertebral bodies","Pedicles","Ribs","Lungs","Iliac crest apophyses","Pelvis and hips","> Lateral view","Thoracic kyphosis","Lumbar lordosis","Lumbosacral junction","Vertebral bodies"],
+"Shoulder": ["> AP and Grashey views","Acromioclavicular joint","Clavicle","Acromion","Coracoid","Humeral head","Greater tuberosity","Glenohumeral joint","Glenoid","Scapula","Ribs and lung apex","Soft tissues","> Axillary or Y view","Humeral head position","Acromion","Coracoid"],
+"Elbow": ["> Lateral view","Anterior and posterior fat pads","Anterior humeral line","Radiocapitellar line","Radial head","Coronoid","Olecranon","> AP and oblique views","Lateral epicondyle","Capitellum","Radial neck","Trochlea","Medial epicondyle","Ossification centers","Soft tissues"],
+"Wrist/Hand": ["> PA view","Distal radius","Ulnar styloid","Scaphoid","Scapholunate interval","Lunate","Triquetrum and pisiform","Trapezium and trapezoid","Capitate and hamate","Carpal arcs","Carpometacarpal joints","Metacarpals","Phalanges","Interphalangeal joints","Soft tissues","> Lateral view","Radius, lunate, and capitate alignment","Pronator fat pad","Dorsal triquetrum","> Oblique view","Metacarpal bases","Scaphoid"],
+"Pelvis/Hip": ["> AP pelvis","Lower lumbar spine","Sacrum and arcuate lines","Sacroiliac joints","Iliac wings","Iliopectineal and ilioischial lines","Acetabula","Femoral heads","Femoral necks","Shenton lines","Greater and lesser trochanters","Pubic rami","Pubic symphysis","Pelvic soft tissues","> Lateral hip view","Femoral head-neck junction","Posterior acetabulum"],
+"Knee": ["> AP view","Femoral condyles","Medial joint space","Lateral joint space","Tibial spines","Tibial plateaus","Lateral tibial rim","Fibular head","> Lateral view","Quadriceps tendon","Suprapatellar recess","Patella","Patellar tendon","Tibial tubercle","Posterior tibial plateau","> Sunrise view","Patellofemoral joint"],
+"Ankle": ["> AP and mortise views","Tibial plafond","Medial malleolus","Medial clear space","Talar dome","Lateral malleolus","Tibiofibular clear space","> Lateral view","Posterior malleolus","Anterior and posterior joint recesses","Talus","Navicular","Calcaneus","Anterior process of calcaneus","Base of fifth metatarsal","Achilles tendon and Kager fat pad"],
+"Foot": ["> AP view","Navicular","Cuneiforms","First and second tarsometatarsal alignment","Metatarsals","Sesamoids","Metatarsophalangeal joints","Phalanges","> Oblique view","Calcaneocuboid joint","Cuboid","Third and fourth tarsometatarsal alignment","Base of fifth metatarsal","> Lateral view","Calcaneus","Talus","Longitudinal arch","Soft tissues"]
+},
+"US": {
+"Abdomen": ["> Right upper quadrant","Liver parenchyma","Liver contour","Hepatic veins","Main portal vein","Intrahepatic bile ducts","Common bile duct","Gallbladder","Gallbladder wall","Right pleural space","Right kidney","Hepatorenal space","> Midline","Pancreas","Abdominal aorta","Inferior vena cava","> Left upper quadrant","Left pleural space","Spleen","Left kidney"],
+"Appendix": ["> Right lower quadrant grayscale","Terminal ileum","Cecum","Appendix base to tip","Periappendiceal fat","Mesenteric lymph nodes","Abdominal wall","Right ovary","Pelvis","> Color Doppler","Appendix wall"],
+"Pelvis/TV": ["> Transabdominal","Bladder","Uterus","Ovaries","Cul-de-sac","> Transvaginal","Uterus","Endometrium","Myometrium","Cervix","Cul-de-sac","Right ovary","Left ovary","Adnexa","> Color Doppler","Ovaries","Adnexa"],
+"1st Trimester": ["> Transabdominal","Uterus","Adnexa","Cul-de-sac","Hepatorenal space","> Transvaginal","Gestational sac location","Amnion and chorion","Subchorionic space","Yolk sac","Embryo and cardiac activity","Crown-rump length","Cervix","Cul-de-sac","Right ovary and corpus luteum","Left ovary","Adnexa"],
+"Scrotum": ["> Grayscale","Right testis","Right epididymis","Left testis","Left epididymis","Tunica vaginalis","Scrotal wall","Spermatic cords","Inguinal canals","> Color Doppler","Right versus left testicular flow","Epididymal flow","Pampiniform plexus with Valsalva"],
+"Liver Doppler": ["> Grayscale","Liver parenchyma","Liver contour","Ascites","Spleen","> Color and spectral Doppler","Main portal vein","Right and left portal veins","TIPS stent","Hepatic artery","Hepatic veins","Inferior vena cava"],
+"Renal Doppler": ["> Grayscale","Right kidney","Left kidney","Abdominal aorta","> Color and spectral Doppler","Aorta at the renal arteries","Right main renal artery","Right intrarenal arteries","Left main renal artery","Left intrarenal arteries","Renal veins"],
+"Liver Tx": ["> Grayscale","Liver parenchyma","Bile ducts","Perihepatic collections","Ascites","Spleen","> Color and spectral Doppler","Hepatic artery anastomosis","Intrahepatic arteries","Main portal vein and anastomosis","Right and left portal veins","Hepatic veins","Inferior vena cava anastomoses"],
+"Renal Tx": ["> Grayscale","Transplant kidney","Collecting system","Peritransplant collections","Bladder","> Color and spectral Doppler","External iliac artery and vein","Renal artery anastomosis","Main renal artery","Segmental and interlobar arteries","Main renal vein"],
+"Malrotation": ["> Transverse midline","Superior mesenteric artery","Superior mesenteric vein","Third portion of duodenum","Mesentery","> Upper abdomen","Stomach","Duodenal bulb","Proximal duodenum","Peritoneal spaces"],
+"Intussusception": ["> Abdominal sweep","Right lower quadrant","Right upper quadrant","Epigastrium","Left upper quadrant","Left lower quadrant","> Target lesion","Intussusceptum","Lead point","Mesenteric lymph nodes","Peritoneal fluid","> Color Doppler","Bowel wall perfusion"],
+"Pyloric Stenosis": ["> Long axis","Pyloric muscle thickness","Pyloric channel length","> Short axis","Pyloric muscle","> Cine","Pyloric channel opening","Stomach","Duodenal bulb"],
+"Renal": ["> Kidneys","Right kidney","Left kidney","Renal parenchyma","Renal pelves","Calyces","Proximal ureters","Perinephric spaces","> Bladder","Bladder wall","Distal ureters","Ureterovesical junctions","Ureteral jets","Postvoid bladder","> Retroperitoneum","Adrenal glands"],
+"Thyroid": ["> Grayscale","Right lobe","Isthmus","Left lobe","Trachea","Parathyroid regions","Central neck lymph nodes","Lateral neck lymph nodes","> Color Doppler","Thyroid parenchyma"],
+"Carotid": ["> Right side","Right common carotid artery","Right carotid bulb","Right internal carotid artery","Right external carotid artery","Right vertebral artery","> Left side","Left common carotid artery","Left carotid bulb","Left internal carotid artery","Left external carotid artery","Left vertebral artery"],
+"TCD": ["> Transtemporal window","Right middle cerebral artery","Right anterior cerebral artery","Right posterior cerebral artery","Right terminal internal carotid artery","Left middle cerebral artery","Left anterior cerebral artery","Left posterior cerebral artery","Left terminal internal carotid artery","> Transorbital window","Ophthalmic arteries","Carotid siphons","> Suboccipital window","Vertebral arteries","Basilar artery"],
+"Neonatal Head": ["> Coronal","Extra-axial spaces","Ventricles","Caudothalamic grooves","Basal ganglia and thalami","Periventricular white matter","Septum pellucidum and cavum","Interhemispheric fissure","Posterior fossa","> Sagittal","Corpus callosum","Cerebellar vermis","Fourth ventricle","Right parasagittal","Left parasagittal","> Color Doppler","Superior sagittal sinus","Anterior cerebral artery"],
+"Neonatal Spine": ["> Sagittal","Conus medullaris level","Filum terminale","Cord pulsation","Central canal","Thecal sac termination","> Transverse","Nerve roots","Posterior elements","> Skin","Dimple tract","Sacrococcygeal soft tissues"],
+"LE DVT": ["> Compression","Common femoral vein","Saphenofemoral junction","Deep femoral vein origin","Femoral vein","Popliteal vein","Calf veins","> Color and spectral Doppler","Right common femoral vein waveform","Left common femoral vein waveform","Popliteal vein","> Incidental","Popliteal fossa","Inguinal lymph nodes","Soft tissues"],
+"Arterial": ["> Spectral Doppler","Common femoral artery","Profunda femoris artery","Superficial femoral artery","Popliteal artery","Anterior tibial artery","Posterior tibial artery","Peroneal artery","Dorsalis pedis artery","> Grayscale","Plaque and stenosis sites","Aneurysm or pseudoaneurysm sites"],
+"Dialysis Access": ["> Inflow","Brachial artery volume flow","Feeding artery","Arterial anastomosis","> Outflow","Fistula or graft body","Venous anastomosis","Draining vein","Central outflow veins","> Surrounding tissues","Perigraft collections"],
+"DDH Hips": ["> Right hip","Iliac line","Bony acetabular roof","Cartilaginous roof and labrum","Femoral head coverage","Femoral head stability","> Left hip","Iliac line","Bony acetabular roof","Cartilaginous roof and labrum","Femoral head coverage","Femoral head stability"]
+},
+"FL": {
+"Swallow Study": ["> Oral phase","Lip seal","Bolus formation and control","Tongue movement","Premature spillage","Oral residue","> Pharyngeal phase","Swallow initiation","Palatal elevation and nasopharyngeal reflux","Laryngeal elevation and epiglottic inversion","Pharyngeal contraction","Residue in the valleculae","Residue in the pyriform sinuses","> Airway protection","Laryngeal penetration","Aspiration","Silent aspiration","Cough response","> Esophageal phase","Cricopharyngeus opening","Esophageal clearance","Retrograde flow","> Consistencies","Thin liquid","Thickened liquid","Puree","Solid","Compensatory strategies","> Technique","Contrast agent","Speech pathologist present","Fluoroscopy time","Air kerma"],
+"Esophagram": ["> Lateral view","Pharynx","Cervical esophagus","Tracheal contrast or aspiration","Posterior esophageal indentation","Anterior tracheal indentation","> Frontal view","Esophageal caliber","Contour and filling defects","Extrinsic compression","Stricture or narrowing","Peristalsis","Anastomosis, if repaired","Tracheoesophageal fistula","Gastroesophageal junction","Hiatal hernia","Reflux","> Technique","Contrast agent","Fluoroscopy time","Air kerma"],
+"Diaphragm/Airway": ["> Diaphragm","Right hemidiaphragm motion","Left hemidiaphragm motion","Paradoxical motion","Elevation","> Airway","Tracheal caliber on inspiration","Tracheal caliber on expiration","Bronchial collapse","Air trapping","Mediastinal shift","> Technique","Fluoroscopy time","Air kerma"],
+"UGI": ["> Scout image","Bowel gas pattern","Tubes and lines","Abnormal calcifications","> Esophagus","Esophageal caliber","Contour and filling defects","Peristalsis","Gastroesophageal junction","Hiatal hernia","Reflux","Aspiration","> Stomach","Gastric position and size","Gastric folds","Gastric wall and contour","Pyloric channel","Gastric outlet obstruction","Gastric emptying","> Duodenum","Duodenal bulb","Duodenal sweep","Duodenojejunal junction position","Web or obstruction","> Proximal small bowel","Jejunal position","Fold pattern","Bowel caliber","Transit","> Technique","Contrast agent","Fluoroscopy time","Air kerma"],
+"UGI Malrotation": ["> Scout image","Bowel gas pattern","Tubes and lines","> Frontal view","Duodenojejunal junction position","Ligament of Treitz level","Duodenal sweep","Position of the jejunal loops","> Lateral view","Posterior position of the duodenum","Retroperitoneal fixation","Corkscrew duodenum or jejunum","Duodenal obstruction or beaking","> Stomach and pylorus","Gastric position","Pyloric channel","Gastric outlet obstruction","> Esophagus","Esophageal caliber","Reflux","Hiatal hernia","> Technique","Contrast agent","Fluoroscopy time","Air kerma"],
+"UGI/SBFT": ["> Scout image","Bowel gas pattern","Tubes and lines","Abnormal calcifications","> Esophagus and stomach","Esophageal contour","Reflux","Hiatal hernia","Stomach","Pylorus","> Duodenum","Duodenal bulb","Duodenal sweep","Duodenojejunal junction position","> Small bowel","Transit time","Jejunal fold pattern","Ileum","Bowel caliber","Stricture or narrowing","Wall thickening or nodularity","Separation of bowel loops","Filling defects","Fistula or sinus tract","> Terminal ileum","Terminal ileum on compression","Ileocecal valve","> Technique","Contrast agent","Fluoroscopy time","Air kerma"],
+"Contrast Enema": ["> Scout image","Bowel gas pattern","Free air","Tubes and lines","Spine and sacrum","> Rectum","Rectal caliber","Rectosigmoid ratio","Transition zone","Contour and contractions","> Colon","Colon caliber","Haustra and folds","Contour","Filling defects","Stricture or narrowing","Sigmoid redundancy","Cecal position","> Terminal ileum","Reflux into the terminal ileum","Ileal caliber","> After evacuation","Retained contrast","Delayed image","> Technique","Contrast agent","Extravasation or perforation","Fluoroscopy time","Air kerma"],
+"Enema Reduction": ["> Pre-reduction","Bowel gas pattern","Free air","Soft tissue mass","> Reduction","Location of the intussusceptum","Progress of the reduction","Reduction at the ileocecal valve","Reflux into the terminal ileum","Lead point","Number of attempts and duration","> After reduction","Perforation or free air","Residual mass or filling defect","> Technique","Reduction agent","Pressure or column height","Fluoroscopy time","Air kerma"],
+"VCUG": ["> Scout image","Bowel gas pattern","Spine and sacrum","Pelvic bones and hips","Radiopaque calculi","Catheter position","> Bladder filling","Bladder capacity","Bladder contour and wall","Trabeculation or diverticula","Filling defects","Bladder position","> Vesicoureteral reflux","Right reflux","Left reflux","Grade of reflux","Timing of reflux","Duplicated collecting system","Intrarenal reflux","> Voiding","Bladder neck","Posterior urethra","Anterior urethra","Urethral caliber and contour","Voiding pattern","Post-void residual","Vaginal filling","> Technique","Contrast agent","Cyclic voiding","Fluoroscopy time","Air kerma"],
+"G/GJ Tube Check": ["> Scout image","Bowel gas pattern","Tube hardware","Abnormal calcifications","> Tube position","Tube tip location","Balloon or bumper position","Tract","Stomach apposition to the abdominal wall","> Contrast","Stomach filling","Passage into the duodenum","Jejunal limb tip position","Position relative to the ligament of Treitz","Extravasation or intraperitoneal contrast","Gastric outlet obstruction","> Technique","Contrast agent","Fluoroscopy time","Air kerma"],
+"NJ/NG Tube": ["> Scout image","Bowel gas pattern","Tubes and lines","> Tube position","Route","Tip location","Tip beyond the ligament of Treitz","Looping or kinking","> Contrast and complications","Contrast confirmation","Extravasation","Aspiration risk","> Technique","Fluoroscopy time","Air kerma"],
+"Distal Loopogram": ["> Scout image","Bowel gas pattern","Spine and sacrum","Tubes and lines","> Distal bowel","Stoma and catheter position","Distal colon caliber","Contour","Stricture or narrowing","Rectal pouch level","Fistula","Fistula to urinary tract or vagina","Bladder filling","> Technique","Contrast agent","Fluoroscopy time","Air kerma"],
+"Lumbar Puncture": ["> Scout image","Spine alignment","Hardware or dysraphism","Interspace level","> Needle placement","Needle trajectory","Needle tip position","Contrast in the subarachnoid space","> Technique","Fluoroscopy time","Air kerma"],
+"Arthrogram": ["> Scout image","Joint alignment","Bones and hardware","> Needle placement","Entry site","Needle tip position","Intra-articular position","> Contrast","Distribution","Capsular distension","Extravasation","Communication with adjacent bursa","> Technique","Joint injected","Contrast and anesthetic volume","Fluoroscopy time","Air kerma"]
+}
+},
+"order": {
+"CT": {"Chest": ["Chest w/o Contrast","Chest w/ Contrast","CTA PE"], "Body": ["Chest/Abd/Pelvis","Abd/Pelvis","CTA Abd/Pelvis"], "Neuro": ["Head","Temporal Bones","Neck","C-Spine","T-Spine","L-Spine","CTA Head/Neck","Orbits","Sella"], "MSK": ["Extremity"]},
+"MR": {"Chest": ["Chest"], "Body": ["Abdomen","Pelvis","Appendix","Enterography","Urogram","Fetal Body"], "Neuro": ["Brain","Brain Seizure","Orbits","IAC","Sella","Neck","C-Spine","T-Spine","L-Spine","Total Spine","Fetal Brain"], "MSK": ["Shoulder","Elbow","Wrist","Finger","Hip/Pelvis","Knee","Ankle","Foot","Infection"]},
+"XR": {"Chest": ["Chest","Neonatal Chest"], "Body": ["Abdomen","Neonatal Abdomen"], "Neuro": ["Skull","C-Spine","T-Spine","L-Spine","Scoliosis"], "MSK": ["Shoulder","Elbow","Wrist/Hand","Pelvis/Hip","Knee","Ankle","Foot"]},
+"US": {"Body": ["Abdomen","Appendix","Pelvis/TV","1st Trimester","Scrotum","Liver Doppler","Renal Doppler","Liver Tx","Renal Tx","Malrotation","Intussusception","Pyloric Stenosis","Renal"], "Neuro": ["Thyroid","Carotid","TCD","Neonatal Head","Neonatal Spine"], "MSK": ["LE DVT","Arterial","Dialysis Access","DDH Hips"]},
+"FL": {"Chest": ["Swallow Study","Esophagram","Diaphragm/Airway"], "Body": ["UGI","UGI Malrotation","UGI/SBFT","Contrast Enema","Enema Reduction","VCUG","G/GJ Tube Check","NJ/NG Tube","Distal Loopogram"], "Neuro": ["Lumbar Puncture"], "MSK": ["Arthrogram"]}
+},
+"keywords": {
+"CT": {
+"CTA PE": "PE:4, PULMONARY EMBOLISM:4, PULMONARY ANGIOGRAM:4, CTA:2, CHEST:2",
+"Chest/Abd/Pelvis": "CHEST:3, THORAX:3, ABDOMEN:1.5, ABD:1.5, ABDOMINAL:1.5, PELVIS:1.5, PELVIC:1.5, CAP:5",
+"Abd/Pelvis": "ABDOMEN:2, ABD:2, ABDOMINAL:2, PELVIS:2, PELVIC:2, ENTEROGRAPHY:1, UROGRAM:1, RENAL:1, KIDNEY:1",
+"Head": "HEAD:2, BRAIN:2",
+"Temporal Bones": "TEMPORAL BONE:4, TEMPORAL BONES:4, IAC:4, IACS:4, INTERNAL AUDITORY:4, MASTOID:3, MASTOIDS:3",
+"Neck": "NECK:2, SOFT TISSUE NECK:3",
+"C-Spine": "CERVICAL:2, C SPINE:3, CSPINE:3",
+"T-Spine": "THORACIC:2, T SPINE:3, TSPINE:3",
+"L-Spine": "LUMBAR:2, L SPINE:3, LSPINE:3, LUMBOSACRAL:2",
+"CTA Head/Neck": "CTA:3, ANGIO:3, ANGIOGRAM:3, ANGIOGRAPHY:3, HEAD:1, NECK:1, CAROTID:1, CAROTIDS:1, STROKE:1",
+"Orbits": "ORBIT:3, ORBITS:3",
+"Sella": "SELLA:3, PITUITARY:3",
+"Extremity": "EXTREMITY:2, SHOULDER:2, HUMERUS:2, ELBOW:2, FOREARM:2, WRIST:2, HAND:2, HIP:2, FEMUR:2, KNEE:2, TIBIA:2, FIBULA:2, ANKLE:2, FOOT:2",
+"Chest w/o Contrast": "CHEST:3.5, THORAX:3.5, LUNG:1, LUNGS:1, WITHOUT:2, WO:2, W O:2, NONCONTRAST:2, NON CONTRAST:2, NO CONTRAST:2",
+"Chest w/ Contrast": "CHEST:3.5, THORAX:3.5, LUNG:1, LUNGS:1, WITH:1.5, CONTRAST:1, ENHANCED:1, IV:1, WITHOUT:-4, WO:-4, W O:-4, NONCONTRAST:-4, NON CONTRAST:-4, NO CONTRAST:-4",
+"CTA Abd/Pelvis": "CTA:4, ANGIO:3, ANGIOGRAM:3, ANGIOGRAPHY:3, AORTA:2, ABDOMEN:2, ABD:2, ABDOMINAL:2, PELVIS:2, PELVIC:2, RUNOFF:1, MESENTERIC:1"
+},
+"MR": {
+"Chest": "CHEST:2, THORAX:2, BRACHIAL PLEXUS:3",
+"Abdomen": "ABDOMEN:2, ABD:2, ABDOMINAL:2, LIVER:2, MRCP:3, PANCREAS:2, KIDNEY:1, KIDNEYS:1, RENAL:1, ADRENAL:1",
+"Pelvis": "PROSTATE:3, PELVIS:2, PELVIC:2, UTERUS:2, RECTUM:2, RECTAL:2, FEMALE:1",
+"Brain": "BRAIN:2, HEAD:2",
+"Brain Seizure": "SEIZURE:4, EPILEPSY:4",
+"Orbits": "ORBIT:3, ORBITS:3",
+"IAC": "IAC:4, IACS:4, INTERNAL AUDITORY:4, TEMPORAL BONE:3, TEMPORAL BONES:3, ACOUSTIC:3",
+"Sella": "SELLA:4, PITUITARY:4",
+"Neck": "NECK:2, SOFT TISSUE NECK:3",
+"C-Spine": "CERVICAL:2, C SPINE:3, CSPINE:3",
+"T-Spine": "THORACIC:2, T SPINE:3, TSPINE:3",
+"L-Spine": "LUMBAR:2, L SPINE:3, LSPINE:3, LUMBOSACRAL:2",
+"Total Spine": "TOTAL SPINE:5, WHOLE SPINE:5, ENTIRE SPINE:5, COMPLETE SPINE:5, SCREENING SPINE:5, CERVICAL:1.5, THORACIC:1.5, LUMBAR:1.5",
+"Shoulder": "SHOULDER:3",
+"Elbow": "ELBOW:3",
+"Wrist": "WRIST:3, HAND:2, FINGER:2",
+"Finger": "FINGER:4, FINGERS:4, THUMB:4, DIGIT:3, DIGITS:3, PHALANX:3, PHALANGES:3, PIP:2, DIP:2, MCP:2",
+"Hip/Pelvis": "HIP:3, HIPS:3, PELVIS:1",
+"Knee": "KNEE:3",
+"Ankle": "ANKLE:3, FOOT:2, HINDFOOT:2, FOREFOOT:2",
+"Infection": "OSTEOMYELITIS:4, INFECTION:4, ABSCESS:3",
+"Enterography": "ENTEROGRAPHY:5, ENTEROGRAM:5",
+"Urogram": "UROGRAM:5, UROGRAPHY:5",
+"Foot": "FOOT:3, FEET:3, FOREFOOT:3, MIDFOOT:3, TOE:2, TOES:2",
+"Fetal Brain": "FETAL:4, FETUS:4, BRAIN:1, HEAD:1",
+"Fetal Body": "FETAL:4, FETUS:4, BODY:2, ABDOMEN:1, CHEST:1, THORAX:1, PELVIS:1",
+"Appendix": "APPENDIX:4, APPENDICITIS:4, RLQ:2, RIGHT LOWER QUADRANT:2"
+},
+"XR": {
+"Chest": "CHEST:2",
+"Abdomen": "ABDOMEN:2, ABD:2, ABDOMINAL:2, KUB:3",
+"Skull": "SKULL:3",
+"C-Spine": "CERVICAL:2, C SPINE:3, CSPINE:3",
+"T-Spine": "THORACIC:2, T SPINE:3, TSPINE:3",
+"L-Spine": "LUMBAR:2, L SPINE:3, LSPINE:3, LUMBOSACRAL:2, LS SPINE:2",
+"Shoulder": "SHOULDER:3, CLAVICLE:2, SCAPULA:2, HUMERUS:1",
+"Elbow": "ELBOW:3, FOREARM:1",
+"Wrist/Hand": "WRIST:3, HAND:3, FINGER:2, FINGERS:2, THUMB:2",
+"Pelvis/Hip": "PELVIS:3, HIP:3, HIPS:3, FEMUR:1",
+"Knee": "KNEE:3, KNEES:3, PATELLA:2, TIBIA:1",
+"Ankle": "ANKLE:3, ANKLES:3",
+"Foot": "FOOT:3, FEET:3, TOE:2, TOES:2, CALCANEUS:2",
+"Neonatal Chest": "NEONATAL:2, NEWBORN:2, NICU:2, BABYGRAM:3, CHEST:2",
+"Neonatal Abdomen": "NEONATAL:2, NEWBORN:2, NICU:2, ABDOMEN:2, ABD:2",
+"Scoliosis": "SCOLIOSIS:5"
+},
+"US": {
+"Abdomen": "ABDOMEN:2, ABD:1, ABDOMINAL:2, RUQ:3, RIGHT UPPER QUADRANT:3, GALLBLADDER:2, LIVER:1",
+"Appendix": "APPENDIX:4, APPENDICITIS:4, RLQ:2, RIGHT LOWER QUADRANT:2",
+"Pelvis/TV": "PELVIS:2, PELVIC:2, TRANSVAGINAL:3, TV:2, UTERUS:2, OVARY:2, OVARIES:2, OVARIAN:2",
+"1st Trimester": "OB:2, PREGNANCY:3, TRIMESTER:3, FIRST TRIMESTER:4, 1ST TRIMESTER:4",
+"Scrotum": "SCROTUM:4, SCROTAL:4, TESTICULAR:4, TESTES:4, TESTIS:4",
+"Liver Doppler": "LIVER DOPPLER:4, HEPATIC DOPPLER:4, PORTAL:2, TIPS:4, DOPPLER:1, DUPLEX:1",
+"Renal Doppler": "RENAL DOPPLER:4, RENAL ARTERY:4, RENAL ARTERIES:4, DOPPLER:1, DUPLEX:1",
+"Liver Tx": "TRANSPLANT:5, LIVER:1, HEPATIC:1",
+"Renal Tx": "TRANSPLANT:5, RENAL:1, KIDNEY:1",
+"Thyroid": "THYROID:4, NECK:1, SOFT TISSUE NECK:2, PARATHYROID:3",
+"Carotid": "CAROTID:4, CAROTIDS:4",
+"TCD": "TCD:4, TRANSCRANIAL:4",
+"LE DVT": "DVT:4, VENOUS:3, VEIN:2, VEINS:2, LOWER EXTREMITY:1, UPPER EXTREMITY:1",
+"Arterial": "ARTERIAL:3, ABI:3, PVR:3, LOWER EXTREMITY:1, UPPER EXTREMITY:1",
+"Malrotation": "MALROTATION:5, MIDGUT:4, VOLVULUS:4",
+"Intussusception": "INTUSSUSCEPTION:5",
+"Pyloric Stenosis": "PYLORIC:5, PYLORUS:5",
+"Renal": "RENAL:2, KIDNEY:2, KIDNEYS:2, RETROPERITONEUM:2, RETROPERITONEAL:2, BLADDER:1, HYDRONEPHROSIS:2",
+"Neonatal Head": "HEAD:4, CRANIAL:4, NEUROSONOGRAPHY:5, NEONATAL HEAD:5, BRAIN:4",
+"Neonatal Spine": "SPINE:4, SPINAL:4, DIMPLE:4",
+"DDH Hips": "HIP:4, HIPS:4, DDH:5, DYSPLASIA:4",
+"Dialysis Access": "DIALYSIS:4, HEMODIALYSIS:4, FISTULA:4, AVF:4, AVG:4, GRAFT:2"
+},
+"FL": {
+"Swallow Study": "SWALLOW:3, MODIFIED BARIUM SWALLOW:6, VIDEOFLUOROSCOPIC:6, VFSS:6, MBS:5, DYSPHAGIA:3, FEEDING:2, SWALLOWING:3, ESOPHAGRAM:-4",
+"Esophagram": "ESOPHAGRAM:6, ESOPHAGOGRAM:6, BARIUM SWALLOW:5, ESOPHAGUS:3, ESOPHAGEAL:3, TRACHEOESOPHAGEAL:3, MODIFIED:-5, VIDEOFLUOROSCOPIC:-6, VFSS:-6",
+"Diaphragm/Airway": "DIAPHRAGM:5, SNIFF:6, AIRWAY:4, TRACHEOMALACIA:5, HEMIDIAPHRAGM:5, CHEST:1",
+"UGI": "UGI:5, UPPER GI:5, UPPER GASTROINTESTINAL:5, UPPER GI SERIES:2, GASTROINTESTINAL:1, MALROTATION:-6, SMALL BOWEL:-5, SBFT:-6, FOLLOW THROUGH:-6, TUBE:-3",
+"UGI Malrotation": "MALROTATION:7, MIDGUT:5, VOLVULUS:5, ROTATION:3, UGI:2, UPPER GI:2, BILIOUS:4, BILIOUS EMESIS:2",
+"UGI/SBFT": "SBFT:7, SMALL BOWEL:5, FOLLOW THROUGH:6, FOLLOW-THROUGH:6, ENTEROGRAPHY:4, UGI:3, UPPER GI:3, MALROTATION:-6",
+"Contrast Enema": "ENEMA:4, CONTRAST ENEMA:3, BARIUM ENEMA:3, LOWER GI:5, LOWER GASTROINTESTINAL:5, COLON:2, HIRSCHSPRUNG:5, HIRSCHSPRUNGS:5, INTUSSUSCEPTION:-8, REDUCTION:-8",
+"Enema Reduction": "INTUSSUSCEPTION:6, REDUCTION:4, AIR ENEMA:4, ENEMA REDUCTION:4, PNEUMATIC:4, HYDROSTATIC:4, ENEMA:1",
+"VCUG": "VCUG:7, VOIDING CYSTOURETHROGRAM:7, CYSTOURETHROGRAM:6, CYSTOURETHROGRAPHY:6, CYSTOGRAM:4, VOIDING:3, URETHROGRAM:3, REFLUX:1",
+"G/GJ Tube Check": "G TUBE:6, GTUBE:6, GJ TUBE:6, GASTROSTOMY:6, GASTROJEJUNOSTOMY:6, TUBE CHECK:5, TUBE STUDY:4, J TUBE:4, PEG:3, CONTRAST INJECTION:2, TUBE:1",
+"NJ/NG Tube": "NJ TUBE:7, NG TUBE:6, NASOJEJUNAL:7, NASOGASTRIC:6, TRANSPYLORIC:6, FEEDING TUBE:5, TUBE PLACEMENT:4, PLACEMENT:2, G TUBE:-5, GJ TUBE:-5",
+"Distal Loopogram": "LOOPOGRAM:7, DISTAL LOOPOGRAM:3, COLOSTOGRAM:6, DISTAL COLOSTOGRAM:6, COLOSTOMY:5, MUCOUS FISTULA:5, OSTOMY:4, ANORECTAL:3, CLOACA:3, STOMA:3",
+"Lumbar Puncture": "LUMBAR PUNCTURE:7, LP:6, SPINAL TAP:6, INTRATHECAL:3, LUMBAR:2, PUNCTURE:2",
+"Arthrogram": "ARTHROGRAM:7, ARTHROGRAPHY:7, JOINT INJECTION:5, INJECTION:2, SHOULDER:1, HIP:1, KNEE:1, WRIST:1"
+}
+},
+"counterparts": {"Head": "Brain", "Brain": "Head", "Abd/Pelvis": "Abdomen", "Abdomen": "Abd/Pelvis"}
+};
+
+</script>
+<script>
+(function(){
+"use strict";
+var MODS=["XR","US","FL","CT","MR"], CATS=["Neuro","Chest","Body","MSK"];
+var LS="sp_templates_v1", LSUI="sp_ui_v1";
+var pipWin=null;
+var $=function(id){return document.getElementById(id)||(pipWin&&pipWin.document.getElementById(id))};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function ensure(d){["checklists","order","keywords","counterparts"].forEach(function(k){d[k]=d[k]||{}});return d}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+
+/* ---------- data ---------- */
+var T;
+(function(){
+  var s=lsGet(LS), d=null;
+  if(s){try{d=JSON.parse(s)}catch(e){d=null}}
+  T=ensure(d&&d.checklists&&d.order?d:clone(window.DEFAULT_TEMPLATES));
+})();
+function studies(t,m,c){return ((t.order[m]||{})[c]||[]).slice()}
+function items(t,m,n){return ((t.checklists[m]||{})[n]||[]).slice()}
+function hasStudy(t,m,n){return !!(t.checklists[m]&&t.checklists[m][n])}
+function categoryOf(t,m,n){var o=t.order[m]||{};for(var c in o){if(o[c].indexOf(n)>=0)return c}return null}
+function isHdr(s){return s.indexOf("> ")===0}
+function spoken(s){return isHdr(s)?s.slice(2):s}
+
+/* ---------- state ---------- */
+var ui={voice:true,minimal:false};
+try{var u=JSON.parse(lsGet(LSUI)||"{}");if(typeof u.voice==="boolean")ui.voice=u.voice;if(typeof u.minimal==="boolean")ui.minimal=u.minimal}catch(e){}
+function saveUi(){lsSet(LSUI,JSON.stringify(ui))}
+var S={mod:"XR",cat:"Chest",study:null,items:[],idx:-1,visited:{},finished:false};
+
+/* ---------- speech ---------- */
+function speak(t){
+  if(!ui.voice||!t||!("speechSynthesis" in window))return;
+  try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.rate=1.1;speechSynthesis.speak(u)}catch(e){}
+}
+
+/* ---------- study matching ---------- */
+var MODTOK={"CT":"CT","CTA":"CT","CTV":"CT","MR":"MR","MRI":"MR","MRA":"MR","MRV":"MR","MRCP":"MR","XR":"XR","DX":"XR","CR":"XR","RADIOGRAPH":"XR","RADIOGRAPHS":"XR","XRAY":"XR","US":"US","ULTRASOUND":"US","SONOGRAM":"US","DOPPLER":"US","DUPLEX":"US","FL":"FL","FLUORO":"FL","FLUOROSCOPY":"FL","FLUOROSCOPIC":"FL","VIDEOFLUOROSCOPIC":"FL","VFSS":"FL","UGI":"FL","SBFT":"FL","ESOPHAGRAM":"FL","VCUG":"FL","CYSTOURETHROGRAM":"FL","ENEMA":"FL","LOOPOGRAM":"FL","SWALLOW":"FL"};
+function norm(l){return " "+l.toUpperCase().replace(/[^A-Z0-9]+/g," ").trim()+" "}
+function detectMod(n){for(var t in MODTOK){if(n.indexOf(" "+t+" ")>=0)return MODTOK[t]}return null}
+function bestPreset(mod,n){
+  var best=null,bs=0,kw=T.keywords[mod]||{};
+  for(var name in kw){
+    var score=0;
+    kw[name].split(",").forEach(function(p){
+      p=p.trim();var i=p.lastIndexOf(":");if(!p||i<0)return;
+      var term=p.slice(0,i).trim().toUpperCase(),w=parseFloat(p.slice(i+1));
+      if(isNaN(w))return;
+      if(n.indexOf(" "+term+" ")>=0)score+=w;
+      else if(term.length>=5&&term.indexOf(" ")<0&&new RegExp(" "+term.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"[A-Z0-9]").test(n))score+=w;
+    });
+    if(score>bs){bs=score;best=name}
+  }
+  return best;
+}
+
+/* ---------- cue panel ---------- */
+function curHdr(){
+  if(!S.items.length)return null;
+  var i=Math.min(Math.max(S.idx,0),S.items.length-1);
+  for(;i>=0;i--){if(isHdr(S.items[i]))return i}
+  return null;
+}
+function headers(){var h=[];S.items.forEach(function(s,i){if(isHdr(s))h.push(i)});return h}
+function blockReviewed(h){
+  var j=h+1,any=false;
+  while(j<S.items.length&&!isHdr(S.items[j])){any=true;if(!S.visited[j])return false;j++}
+  return any;
+}
+function renderMods(){
+  $("mods").innerHTML=MODS.map(function(m){return '<button class="btn'+(m===S.mod?' sel':'')+'" data-m="'+m+'">'+m+'</button>'}).join("");
+}
+function renderCats(){
+  $("cats").innerHTML=CATS.map(function(c){
+    var has=studies(T,S.mod,c).length>0;
+    return '<button class="btn'+(c===S.cat?' sel':(has?'':' off'))+'" data-c="'+c+'">'+c+'</button>';
+  }).join("");
+}
+function renderStudies(){
+  var names=studies(T,S.mod,S.cat);
+  $("studies").innerHTML=names.length?names.map(function(n){
+    return '<button class="btn'+(n===S.study?' study-sel':'')+'" data-s="'+esc(n)+'">'+esc(n)+'</button>';
+  }).join(""):'<p class="sub" style="grid-column:1/-1">No studies in this category.</p>';
+}
+function renderSeq(){
+  var ch=curHdr();
+  $("seqs").innerHTML=headers().map(function(i){
+    var cls=i===ch?" sel":(blockReviewed(i)?" reviewed":"");
+    return '<button class="btn'+cls+'" data-i="'+i+'">'+esc(S.items[i].slice(2))+'</button>';
+  }).join("");
+}
+function renderList(){
+  var L=$("list");
+  if(!S.items.length){L.innerHTML='<li class="empty">Select a study</li>';return}
+  var h=curHdr(),start=h===null?0:h+1,end=S.items.length;
+  for(var i=start;i<S.items.length;i++){if(isHdr(S.items[i])){end=i;break}}
+  var out="";
+  for(i=start;i<end;i++){
+    var cls=i<S.idx?"done":(i===S.idx?"cur":""),mk=i<S.idx?"✓":(i===S.idx?"▶":"");
+    out+='<li class="'+cls+'" data-i="'+i+'"><span class="mk">'+mk+'</span><span>'+esc(S.items[i])+'</span></li>';
+  }
+  if(S.finished)out+='<li class="finish"><span class="mk">✓</span><span>Checklist complete</span></li>';
+  L.innerHTML=out;
+  var c=L.querySelector(".cur");
+  if(c){L.scrollTop=Math.max(0,c.offsetTop-L.offsetTop-L.clientHeight/3)}
+}
+function renderMini(){
+  if(!S.items.length){$("ms").textContent="";$("mv").textContent="";$("mi").textContent="Select a study";return}
+  $("ms").textContent=S.mod+" • "+S.study;
+  var h=curHdr();$("mv").textContent=h===null?"":S.items[h].slice(2);
+  $("mi").textContent=S.finished?"Checklist complete":(S.idx>=0&&S.idx<S.items.length?spoken(S.items[S.idx]):"Press Next to start");
+}
+function renderAll(){
+  renderMods();renderCats();renderStudies();renderSeq();renderList();renderMini();
+  $("app").classList.toggle("min",ui.minimal);
+  $("minbtn").textContent=ui.minimal?"Full":"Minimal";
+  $("voice").setAttribute("aria-pressed",ui.voice?"true":"false");
+  $("voice").textContent=ui.voice?"Voice on":"Voice off";
+  $("pop").textContent=pipWin?"Dock":"Pop out";
+}
+function loadStudy(mod,name,quiet){
+  S.mod=mod;S.study=name;S.items=items(T,mod,name);S.visited={};S.finished=false;
+  S.cat=categoryOf(T,mod,name)||S.cat;
+  var h=headers();
+  if(S.items.length&&!quiet){S.idx=h.length?h[0]:0;S.visited[S.idx]=true;speak(spoken(S.items[S.idx]))}
+  else S.idx=-1;
+  renderAll();
+}
+function go(i){S.finished=false;S.idx=i;S.visited[i]=true;renderAll();speak(spoken(S.items[i]))}
+function next(){
+  if(!S.items.length){$("match").focus();return}
+  if(S.idx>=S.items.length-1){
+    if(!S.finished){S.finished=true;renderAll();speak("Checklist complete")}
+    else{S.finished=false;renderAll();$("match").focus();$("match").select()}
+    return;
+  }
+  go(S.idx+1);
+}
+function prev(){
+  if(!S.items.length)return;
+  if(S.finished){S.finished=false;S.visited[S.idx]=true;renderAll();speak(spoken(S.items[S.idx]));return}
+  if(S.idx>0)go(S.idx-1);else go(0);
+}
+function nextSeq(){
+  if(!S.items.length)return;
+  var n=headers().filter(function(h){return h>S.idx});
+  go(n.length?n[0]:S.items.length-1);
+}
+function prevSeq(){
+  if(!S.items.length)return;
+  var cur=curHdr(),p=headers().filter(function(h){return h<(cur===null?S.idx:cur)});
+  go(p.length?p[p.length-1]:0);
+}
+function setMod(m){
+  if(m===S.mod)return;
+  var old=S.study;S.mod=m;
+  if(old){
+    var t=old;
+    if(!hasStudy(T,m,t)){var cp=T.counterparts[t];if(cp&&hasStudy(T,m,cp))t=cp}
+    if(hasStudy(T,m,t)){loadStudy(m,t);return}
+  }
+  renderAll();
+}
+function runMatch(){
+  var line=$("match").value.trim();
+  if(!line){$("matchmsg").textContent="Paste a study name first.";return}
+  var n=norm(line),mod=detectMod(n)||S.mod,name=bestPreset(mod,n);
+  if(!name){$("matchmsg").textContent="No matching study. Pick one below.";speak("No matching study");return}
+  $("matchmsg").textContent="Matched "+mod+" • "+name;
+  loadStudy(mod,name);
+}
+$("mods").onclick=function(e){var b=e.target.closest("[data-m]");if(b)setMod(b.dataset.m)};
+$("cats").onclick=function(e){var b=e.target.closest("[data-c]");if(b){S.cat=b.dataset.c;renderCats();renderStudies()}};
+$("studies").onclick=function(e){var b=e.target.closest("[data-s]");if(b)loadStudy(S.mod,b.dataset.s)};
+$("seqs").onclick=function(e){var b=e.target.closest("[data-i]");if(b)go(+b.dataset.i)};
+$("list").onclick=function(e){var li=e.target.closest("li[data-i]");if(li)go(+li.dataset.i)};
+$("next").onclick=next;$("prev").onclick=prev;$("nseq").onclick=nextSeq;$("pseq").onclick=prevSeq;
+$("matchform").onsubmit=function(e){e.preventDefault();runMatch()};
+$("voice").onclick=function(){ui.voice=!ui.voice;if(!ui.voice&&"speechSynthesis" in window)speechSynthesis.cancel();saveUi();renderAll()};
+$("minbtn").onclick=function(){ui.minimal=!ui.minimal;saveUi();renderAll()};
+function onKey(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if($("ovl").classList.contains("open")||$("dlg").classList.contains("open"))return;
+  var t=e.target,tag=t&&t.tagName;
+  if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
+  if(e.key==="Escape")return;
+  var k=e.key,f=true;
+  if(k===" "||k==="ArrowRight"){if(tag==="BUTTON"&&k===" ")return;next()}
+  else if(k==="ArrowLeft")prev();
+  else if(k==="ArrowDown"||k==="]")nextSeq();
+  else if(k==="ArrowUp"||k==="[")prevSeq();
+  else f=false;
+  if(f)e.preventDefault();
+}
+document.addEventListener("keydown",onKey);
+
+/* ---------- small dialogs ---------- */
+var dlgDone=null;
+function dlgOpen(html,wide){
+  $("dbox").innerHTML=html;$("dlg").classList.toggle("wide",!!wide);$("dlg").classList.add("open");
+  var f=$("dbox").querySelector("input,textarea");if(f){f.focus();if(f.select)f.select()}
+}
+function dlgClose(v){$("dlg").classList.remove("open");var d=dlgDone;dlgDone=null;if(d)d(v)}
+function askText(title,label,val){
+  return new Promise(function(res){
+    dlgDone=res;
+    dlgOpen('<h4>'+esc(title)+'</h4><p>'+esc(label)+'</p><input class="field" id="dlgin" value="'+esc(val||"")+'"><div class="acts"><button class="sm" data-x="0">Cancel</button><button class="pri" data-x="1">OK</button></div>');
+    $("dlgin").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();var v=$("dlgin").value.trim();dlgClose(v||null)}else if(e.key==="Escape")dlgClose(null)};
+    $("dbox").onclick=function(e){var b=e.target.closest("[data-x]");if(!b)return;dlgClose(b.dataset.x==="1"?($("dlgin").value.trim()||null):null)};
+  });
+}
+function askYes(title,msg,yes){
+  return new Promise(function(res){
+    dlgDone=res;
+    dlgOpen('<h4>'+esc(title)+'</h4><p>'+esc(msg)+'</p><div class="acts"><button class="sm" data-x="0">Cancel</button><button class="pri" data-x="1">'+esc(yes||"OK")+'</button></div>');
+    $("dbox").onclick=function(e){var b=e.target.closest("[data-x]");if(b)dlgClose(b.dataset.x==="1")};
+  });
+}
+function showText(title,msg,text,editable){
+  return new Promise(function(res){
+    dlgDone=res;
+    dlgOpen('<h4>'+esc(title)+'</h4><p>'+esc(msg)+'</p><textarea id="dlgta"'+(editable?'':' readonly')+' spellcheck="false">'+esc(text)+'</textarea><div class="acts">'+(editable?'<label class="sm" style="cursor:pointer">Load file<input type="file" id="dlgfile" accept=".json,application/json" hidden></label>':'<button class="sm" data-x="copy">Copy</button>')+'<button class="sm" data-x="0">'+(editable?'Cancel':'Close')+'</button>'+(editable?'<button class="pri" data-x="1">Import</button>':'')+'</div>',true);
+    if(!editable){$("dlgta").select()}
+    if(editable){$("dlgfile").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$("dlgta").value=String(r.result)};r.readAsText(f)}}
+    $("dbox").onclick=function(e){
+      var b=e.target.closest("[data-x]");if(!b)return;
+      if(b.dataset.x==="copy"){try{navigator.clipboard.writeText($("dlgta").value).then(function(){b.textContent="Copied"},function(){b.textContent="Select and copy manually"})}catch(x){b.textContent="Select and copy manually"}return}
+      dlgClose(b.dataset.x==="1"?$("dlgta").value:null);
+    };
+  });
+}
+
+/* ---------- editor ---------- */
+var ED=null;
+function edOpen(){
+  ED={draft:clone(T),mod:S.mod,name:S.study&&hasStudy(T,S.mod,S.study)?S.study:null,focus:-1,dirty:false};
+  if(!ED.name){var f=firstStudy(ED.draft,ED.mod);ED.name=f}
+  $("emsg").textContent="";
+  $("ovl").classList.add("open");edRender();
+}
+function firstStudy(t,m){for(var i=0;i<CATS.length;i++){var s=studies(t,m,CATS[i]);if(s.length)return s[0]}return null}
+function edClose(){$("ovl").classList.remove("open");ED=null}
+function edRender(){
+  $("etabs").innerHTML=MODS.map(function(m){return '<button role="tab" data-m="'+m+'" aria-selected="'+(m===ED.mod)+'">'+m+'</button>'}).join("");
+  var L='<div class="tools"><button data-a="new">New</button><button data-a="dup">Duplicate</button><button data-a="ren">Rename</button><button data-a="up" title="Move up">↑</button><button data-a="down" title="Move down">↓</button><button class="danger" style="color:var(--danger)" data-a="del">Delete</button></div>';
+  CATS.forEach(function(c){
+    var ss=studies(ED.draft,ED.mod,c);
+    L+='<div class="cat-h">'+c+'</div>';
+    if(!ss.length)L+='<div class="sub" style="padding:2px 8px">Empty</div>';
+    ss.forEach(function(n){L+='<button class="st" data-n="'+esc(n)+'" aria-current="'+(n===ED.name)+'">'+esc(n)+'</button>'});
+  });
+  $("eleft").innerHTML=L;
+  var R="";
+  if(!ED.name||!hasStudy(ED.draft,ED.mod,ED.name)){R='<p class="sub">Select a study on the left, or create one with New.</p>'}
+  else{
+    var cat=categoryOf(ED.draft,ED.mod,ED.name),rows=ED.draft.checklists[ED.mod][ED.name];
+    R+='<div class="meta"><h3>'+esc(ED.mod+" • "+ED.name)+'</h3><label class="sub" for="ecat">Category</label><select id="ecat">'+CATS.map(function(c){return '<option'+(c===cat?' selected':'')+'>'+c+'</option>'}).join("")+'</select></div>';
+    R+='<div class="tools"><button data-a="addi">+ Structure</button><button data-a="addh">+ View header</button></div>';
+    R+='<div class="rows" id="erows">'+rows.map(function(t,i){
+      var h=isHdr(t);
+      return '<div class="er'+(h?' hdr':'')+'" data-i="'+i+'"><span class="h" draggable="true" title="Drag to reorder">⋮⋮</span><input value="'+esc(h?t.slice(2):t)+'" data-i="'+i+'" aria-label="Row '+(i+1)+'"><button class="sm" data-r="h" title="Toggle view header">'+(h?'Header':'Item')+'</button><button class="sm" data-r="u" title="Move up">↑</button><button class="sm" data-r="d" title="Move down">↓</button><button class="sm danger" data-r="x" title="Delete row">✕</button></div>';
+    }).join("")+'</div>';
+    R+='<div class="kw"><label for="ekw">Auto-detect keywords (TERM:weight, comma separated; negative weights penalize)</label><input id="ekw" value="'+esc((ED.draft.keywords[ED.mod]||{})[ED.name]||"")+'" placeholder="BRAIN:2, HEAD:2"></div>';
+  }
+  $("eright").innerHTML=R;
+}
+function curRows(){return ED.draft.checklists[ED.mod][ED.name]}
+function edMsg(t){$("emsg").textContent=t}
+$("edit").onclick=edOpen;
+$("ecancel").onclick=function(){edClose()};
+$("esave").onclick=function(){
+  T=ensure(ED.draft);
+  var ok=lsSet(LS,JSON.stringify(T));
+  if(S.study&&hasStudy(T,S.mod,S.study)){S.items=items(T,S.mod,S.study);S.idx=Math.min(S.idx,S.items.length-1);S.cat=categoryOf(T,S.mod,S.study)||S.cat}
+  else if(S.study){S.study=null;S.items=[];S.idx=-1}
+  edClose();renderAll();
+  $("matchmsg").textContent=ok?"Templates saved in this browser.":"Saved for this session only. Use Export to keep a copy.";
+};
+$("etabs").onclick=function(e){var b=e.target.closest("[data-m]");if(!b)return;ED.mod=b.dataset.m;ED.name=firstStudy(ED.draft,ED.mod);ED.focus=-1;edRender()};
+$("eleft").onclick=async function(e){
+  var st=e.target.closest("[data-n]");
+  if(st){ED.name=st.dataset.n;ED.focus=-1;edRender();return}
+  var b=e.target.closest("[data-a]");if(!b)return;
+  var a=b.dataset.a,d=ED.draft,m=ED.mod,n=ED.name,cat=n?categoryOf(d,m,n):null;
+  if(a==="new"){
+    var nm=await askText("New study","Name for the new "+m+" study (button label):","");
+    if(!nm)return;if(hasStudy(d,m,nm)){edMsg(m+" already has "+nm);return}
+    var c=cat||"Body";
+    d.checklists[m]=d.checklists[m]||{};d.checklists[m][nm]=["> View 1","New structure"];
+    d.order[m]=d.order[m]||{};d.order[m][c]=d.order[m][c]||[];d.order[m][c].push(nm);ED.name=nm;ED.focus=-1;edRender();
+  }else if(!n){return}
+  else if(a==="dup"){
+    var nn=await askText("Duplicate study","Name for the copy:",n+" copy");
+    if(!nn)return;if(hasStudy(d,m,nn)){edMsg(m+" already has "+nn);return}
+    d.checklists[m][nn]=d.checklists[m][n].slice();
+    var arr=d.order[m][cat];arr.splice(arr.indexOf(n)+1,0,nn);
+    var kw=(d.keywords[m]||{})[n];if(kw){d.keywords[m][nn]=kw}
+    ED.name=nn;edRender();
+  }else if(a==="ren"){
+    var rn=await askText("Rename study","New name:",n);
+    if(!rn||rn===n)return;if(hasStudy(d,m,rn)){edMsg(m+" already has "+rn);return}
+    d.checklists[m][rn]=d.checklists[m][n];delete d.checklists[m][n];
+    var o=d.order[m][cat];o[o.indexOf(n)]=rn;
+    if(d.keywords[m]&&d.keywords[m][n]!==undefined){d.keywords[m][rn]=d.keywords[m][n];delete d.keywords[m][n]}
+    ED.name=rn;edRender();
+  }else if(a==="del"){
+    var yes=await askYes("Delete study","Delete "+m+" • "+n+"? You can still Cancel the editor to undo this before saving.","Delete");
+    if(!yes)return;
+    delete d.checklists[m][n];var o2=d.order[m][cat];o2.splice(o2.indexOf(n),1);
+    if(d.keywords[m])delete d.keywords[m][n];
+    ED.name=firstStudy(d,m);edRender();
+  }else if(a==="up"||a==="down"){
+    var ar=d.order[m][cat],i=ar.indexOf(n),j=a==="up"?i-1:i+1;
+    if(j>=0&&j<ar.length){ar.splice(i,1);ar.splice(j,0,n);edRender()}
+  }
+};
+$("eright").onclick=function(e){
+  var d=ED.draft,m=ED.mod,n=ED.name;if(!n)return;
+  var rows=curRows(),a=e.target.closest("[data-a]");
+  if(a){
+    var at=ED.focus>=0&&ED.focus<rows.length?ED.focus+1:rows.length;
+    rows.splice(at,0,a.dataset.a==="addh"?"> New view":"New structure");
+    ED.focus=at;edRender();
+    var inp=$("erows").querySelector('input[data-i="'+at+'"]');if(inp){inp.focus();inp.select()}
+    return;
+  }
+  var r=e.target.closest("[data-r]");if(!r)return;
+  var i=+r.closest(".er").dataset.i,k=r.dataset.r;
+  if(k==="x"){rows.splice(i,1);ED.focus=-1}
+  else if(k==="u"&&i>0){var t=rows.splice(i,1)[0];rows.splice(i-1,0,t);ED.focus=i-1}
+  else if(k==="d"&&i<rows.length-1){var t2=rows.splice(i,1)[0];rows.splice(i+1,0,t2);ED.focus=i+1}
+  else if(k==="h"){rows[i]=isHdr(rows[i])?rows[i].slice(2):"> "+rows[i]}
+  edRender();
+};
+$("eright").addEventListener("input",function(e){
+  var t=e.target;
+  if(t.id==="ekw"){ED.draft.keywords[ED.mod]=ED.draft.keywords[ED.mod]||{};ED.draft.keywords[ED.mod][ED.name]=t.value.trim();return}
+  if(t.dataset&&t.dataset.i!==undefined&&t.closest(".er")){var i=+t.dataset.i,rows=curRows();rows[i]=(isHdr(rows[i])?"> ":"")+t.value}
+});
+$("eright").addEventListener("focusin",function(e){var t=e.target;if(t.dataset&&t.dataset.i!==undefined&&t.closest(".er"))ED.focus=+t.dataset.i});
+$("eright").addEventListener("change",function(e){
+  if(e.target.id!=="ecat")return;
+  var d=ED.draft,m=ED.mod,n=ED.name,from=categoryOf(d,m,n),to=e.target.value;
+  if(from===to)return;
+  var a=d.order[m][from];a.splice(a.indexOf(n),1);d.order[m][to]=d.order[m][to]||[];d.order[m][to].push(n);edRender();
+});
+/* drag to reorder rows */
+var dragI=null;
+$("eright").addEventListener("dragstart",function(e){
+  var h=e.target.closest&&e.target.closest(".h");if(!h)return;
+  var row=h.closest(".er");dragI=+row.dataset.i;
+  try{e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","row");e.dataTransfer.setDragImage(row,10,10)}catch(x){}
+});
+$("eright").addEventListener("dragover",function(e){
+  if(dragI===null)return;var row=e.target.closest(".er");if(!row)return;e.preventDefault();
+  [].forEach.call(document.querySelectorAll(".er.drop"),function(x){x.classList.remove("drop")});row.classList.add("drop");
+});
+$("eright").addEventListener("drop",function(e){
+  if(dragI===null)return;var row=e.target.closest(".er");if(!row)return;e.preventDefault();
+  var to=+row.dataset.i,rows=curRows(),t=rows.splice(dragI,1)[0];rows.splice(to,0,t);dragI=null;ED.focus=to;edRender();
+});
+$("eright").addEventListener("dragend",function(){dragI=null;[].forEach.call(document.querySelectorAll(".er.drop"),function(x){x.classList.remove("drop")})});
+
+$("exp").onclick=function(){showText("Export templates","Copy this JSON to keep a backup, or to share your templates with someone else.",JSON.stringify(ED.draft,null,1),false)};
+$("imp").onclick=async function(){
+  var txt=await showText("Import templates","Paste a templates.json or load a file. This replaces the templates in the editor; nothing is kept until you press Save.","",true);
+  if(txt===null||!String(txt).trim())return;
+  try{
+    var d=JSON.parse(txt);
+    if(!d||typeof d!=="object"||!d.checklists||!d.order)throw new Error("needs checklists and order");
+    ED.draft=ensure(d);ED.mod=MODS[0];ED.name=firstStudy(ED.draft,ED.mod);ED.focus=-1;edRender();edMsg("Imported. Press Save to keep it.");
+  }catch(x){edMsg("Import failed: "+x.message)}
+};
+$("reset").onclick=async function(){
+  var y=await askYes("Reset to defaults","Replace all templates in the editor with the original set? Press Save afterward to keep it.","Reset");
+  if(!y)return;
+  ED.draft=ensure(clone(window.DEFAULT_TEMPLATES));ED.name=firstStudy(ED.draft,ED.mod);ED.focus=-1;edRender();edMsg("Defaults restored. Press Save to keep them.");
+};
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"){
+    if($("dlg").classList.contains("open"))dlgClose(null);
+    else if($("ovl").classList.contains("open"))edClose();
+  }
+});
+
+function note(t){$("matchmsg").textContent=t}
+
+/* ---------- pop-out window ---------- */
+var preMin=false;
+function popToggle(){
+  if(pipWin){pipWin.close();return}
+  if(!("documentPictureInPicture" in window)){note("Pop-out needs Chrome or Edge 116 or newer.");return}
+  window.documentPictureInPicture.requestWindow({width:380,height:520}).then(function(w){
+    var app=document.getElementById("app"),d=w.document;
+    [].forEach.call(document.querySelectorAll("link[rel=stylesheet],style"),function(n){d.head.appendChild(n.cloneNode(true))});
+    var th=document.documentElement.getAttribute("data-theme");if(th)d.documentElement.setAttribute("data-theme",th);
+    d.body.style.cssText="margin:0;padding:0";
+    pipWin=w;app.classList.add("pip");d.body.appendChild(app);
+    preMin=ui.minimal;ui.minimal=true;
+    d.addEventListener("keydown",onKey);
+    w.addEventListener("pagehide",function(){
+      pipWin=null;app.classList.remove("pip");
+      document.body.insertBefore(app,document.getElementById("ovl"));
+      ui.minimal=preMin;renderAll();
+    });
+    renderAll();
+  }).catch(function(){note("The browser did not allow a pop-out window here. Click Pop out again.")});
+}
+$("pop").onclick=popToggle;
+
+/* ---------- start ---------- */
+(function(){
+  var first=studies(T,"XR","Chest")[0]||firstStudy(T,"XR");
+  if(first)loadStudy("XR",first,true);else renderAll();
+})();
+})();
+</script>
+</body>
+</html>
